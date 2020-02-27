@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 class ApiRepository {
-  Future<String> authenticate(String username, String password) async {
+  Future<String> authenticate({String username, String password}) async {
     await Future.delayed(Duration(seconds: 1));
     return 'token';
   }

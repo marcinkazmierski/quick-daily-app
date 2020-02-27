@@ -18,6 +18,10 @@ abstract class AuthenticationState extends Equatable {
 // if the authentication state was authenticated, the user might see a home screen.
 // if the authentication state was unauthenticated, the user might see a login form.
 
+//yield definition:
+//By marking a function as async* we are able to use the yield keyword and return a Stream of data. In the above example, we are returning a Stream of integers up to the max integer parameter.
+//Every time we yield in an async* function we are pushing that piece of data through the Stream.
+
 /// STATES
 class AuthenticationUninitialized extends AuthenticationState {}
 
