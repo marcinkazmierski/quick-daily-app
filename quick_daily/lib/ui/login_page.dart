@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:quick_daily/common/fade_animation.dart';
 import 'package:quick_daily/repositories/api_repository.dart';
 import 'package:quick_daily/blocs/authentication_bloc.dart';
 import 'package:quick_daily/blocs/login_bloc.dart';
@@ -37,7 +37,6 @@ class LoginForm extends StatefulWidget {
 class _LoginFormState extends State<LoginForm> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  TextStyle _style = TextStyle(fontFamily: 'Montserrat', fontSize: 20.0);
 
   @override
   Widget build(BuildContext context) {
@@ -78,49 +77,58 @@ class _LoginFormState extends State<LoginForm> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
-                        CircleAvatar(
-                          radius: 58.0,
-                          backgroundColor: Colors.teal,
-                          foregroundColor: Colors.white,
-                          child: Icon(Icons.phone_in_talk, size: 50),
-                        ),
+                        FadeAnimation(
+                            2,
+                            CircleAvatar(
+                              radius: 58.0,
+                              backgroundColor: Colors.teal,
+                              foregroundColor: Colors.white,
+                              child: Icon(Icons.phone_in_talk, size: 50),
+                            )),
                         SizedBox(
                           height: 30.0,
                         ),
-                        TextFormField(
-                          controller: _usernameController,
-                          decoration: InputDecoration(
-                              prefixIcon: Icon(
-                                Icons.person,
-                                color: Colors.white,
-                              ),
-                              hintStyle: TextStyle(color: Colors.white),
-                              filled: true,
-                              fillColor: Colors.black45,
-                              hintText: 'Username'),
-                        ),
+                        FadeAnimation(
+                            2,
+                            TextFormField(
+                              controller: _usernameController,
+                              decoration: InputDecoration(
+                                  prefixIcon: Icon(
+                                    Icons.person,
+                                    color: Colors.white,
+                                  ),
+                                  hintStyle: TextStyle(color: Colors.white),
+                                  filled: true,
+                                  fillColor: Colors.black45,
+                                  hintText: 'Username'),
+                            )),
                         SizedBox(
                           height: 10.0,
                         ),
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                              filled: true,
-                              prefixIcon: Icon(Icons.lock, color: Colors.white),
-                              hintStyle: TextStyle(color: Colors.white),
-                              fillColor: Colors.black45,
-                              hintText: 'Password'),
-                        ),
+                        FadeAnimation(
+                            2,
+                            TextFormField(
+                              controller: _passwordController,
+                              obscureText: true,
+                              decoration: InputDecoration(
+                                  filled: true,
+                                  prefixIcon:
+                                      Icon(Icons.lock, color: Colors.white),
+                                  hintStyle: TextStyle(color: Colors.white),
+                                  fillColor: Colors.black45,
+                                  hintText: 'Password'),
+                            )),
                         SizedBox(
                           height: 15.0,
                         ),
-                        FlatButton(
-                            onPressed: () {},
-                            child: Text(
-                              'Forgot your Password?',
-                              style: TextStyle(color: Colors.white),
-                            )),
+                        FadeAnimation(
+                            2,
+                            FlatButton(
+                                onPressed: () {},
+                                child: Text(
+                                  'Forgot your Password?',
+                                  style: TextStyle(color: Colors.white),
+                                ))),
                         SizedBox(
                           height: 15.0,
                         ),
@@ -129,27 +137,31 @@ class _LoginFormState extends State<LoginForm> {
                               ? CircularProgressIndicator()
                               : null,
                         ),
-                        RaisedButton(
-                          onPressed: state is! LoginLoading
-                              ? _onLoginButtonPressed
-                              : null,
-                          child: Padding(
-                              padding: EdgeInsets.all(15.0),
-                              child: Text('LOGIN')),
-                          color: Colors.teal,
-                          textColor: Colors.white,
-                        ),
+                        FadeAnimation(
+                            2,
+                            RaisedButton(
+                              onPressed: state is! LoginLoading
+                                  ? _onLoginButtonPressed
+                                  : null,
+                              child: Padding(
+                                  padding: EdgeInsets.all(15.0),
+                                  child: Text('LOGIN')),
+                              color: Colors.teal,
+                              textColor: Colors.white,
+                            )),
                         SizedBox(
                           height: 10.0,
                         ),
-                        RaisedButton(
-                          onPressed: () {},
-                          child: Padding(
-                              padding: EdgeInsets.all(15.0),
-                              child: Text('REGISTER')),
-                          color: Colors.grey,
-                          textColor: Colors.white,
-                        ),
+                        FadeAnimation(
+                            2,
+                            RaisedButton(
+                              onPressed: () {},
+                              child: Padding(
+                                  padding: EdgeInsets.all(15.0),
+                                  child: Text('REGISTER')),
+                              color: Colors.grey,
+                              textColor: Colors.white,
+                            )),
                       ],
                     ),
                   ),
