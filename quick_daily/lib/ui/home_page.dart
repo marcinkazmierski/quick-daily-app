@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:quick_daily/models/team.dart';
 import 'package:quick_daily/blocs/authentication_bloc.dart';
+import 'package:quick_daily/models/team.dart';
+import 'package:quick_daily/repositories/api_repository.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -16,26 +17,28 @@ class HomeState extends State<HomePage> {
   /// if channel textField is validated to have error
   bool _validateError = false;
 
-  List teams = [
-    Team(
-        id: 1,
-        name: "Team A",
-        description: "Work in Poznań",
-        imageUrl:
-            "https://d36tnp772eyphs.cloudfront.net/blogs/1/2018/02/Taj-Mahal.jpg"),
-    Team(
-        id: 2,
-        name: "Team B",
-        description: "Work in Home",
-        imageUrl:
-            "https://d36tnp772eyphs.cloudfront.net/blogs/1/2016/03/petra-jordan9.jpg"),
-    Team(
-        id: 3,
-        name: "Team C",
-        description: "Holidays",
-        imageUrl:
-            "https://d36tnp772eyphs.cloudfront.net/blogs/1/2018/02/Machu-Picchu-around-sunset.jpg"),
-  ];
+  List<Team> teams = new List<Team>();
+
+  @override
+  void initState() {
+    ApiRepository().getTeams().then((list) {
+      setState(() {
+        this.teams = list;
+      });
+    }).catchError((catchError) {
+      return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("API error"),
+            content: Text(catchError.toString()),
+          );
+        },
+      );
+    });
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,18 +61,30 @@ class HomeState extends State<HomePage> {
                 itemCount: teams.length,
                 shrinkWrap: true,
                 physics: ClampingScrollPhysics(),
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: Image.network(teams[index].imageUrl),
-                    title: Text(teams[index].name),
-                    subtitle: Text(teams[index].description),
-                  );
-                },
+                itemBuilder: _buildItemsForListView,
               ),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildItemsForListView(BuildContext context, int index) {
+    Team team = teams[index];
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundImage: NetworkImage(team.imageUrl),
+      ),
+      title: Text(team.name),
+      subtitle: Text(team.description),
+      trailing: Icon(Icons.keyboard_arrow_right),
+      onTap: () {
+        // do something
+      },
+      onLongPress: (){
+        // do something else
+      },
     );
   }
 }
