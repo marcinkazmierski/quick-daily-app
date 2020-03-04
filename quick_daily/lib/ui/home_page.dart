@@ -10,6 +10,10 @@ class HomePage extends StatefulWidget {
   State<StatefulWidget> createState() => HomeState();
 }
 
+/// TODO: BLoC !!!!
+///
+///
+
 class HomeState extends State<HomePage> {
   /// create a channelController to retrieve text value
   final _channelController = TextEditingController();
@@ -81,8 +85,9 @@ class HomeState extends State<HomePage> {
       trailing: Icon(Icons.keyboard_arrow_right),
       onTap: () {
         // do something
+        /// TODO: new event -> new screen
       },
-      onLongPress: (){
+      onLongPress: () {
         // do something else
       },
     );
