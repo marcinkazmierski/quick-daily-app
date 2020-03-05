@@ -33,7 +33,7 @@ class ApiRepository {
         name: "Team A",
         description: "Work in Poznań",
         imageUrl:
-            "https://d36tnp772eyphs.cloudfront.net/blogs/1/2018/02/Taj-Mahal.jpg?arg=1"));
+            "https://d36tnp772eyphs.cloudfront.net/blogs/1/2018/02/Taj-Mahal.jpg"));
 
     teams.add(Team(
         id: 2,

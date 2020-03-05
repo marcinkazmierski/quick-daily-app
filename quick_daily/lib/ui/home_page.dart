@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_daily/blocs/authentication_bloc.dart';
 import 'package:quick_daily/models/team.dart';
+import 'package:quick_daily/ui/call_page.dart';
 import 'package:quick_daily/repositories/api_repository.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -86,10 +88,34 @@ class HomeState extends State<HomePage> {
       onTap: () {
         // do something
         /// TODO: new event -> new screen
+        onJoin(team.name);
       },
       onLongPress: () {
         // do something else
       },
+    );
+  }
+
+  Future<void> onJoin(String name) async {
+    // update input validation
+
+    // await for camera and mic permissions before pushing video page
+    await _handleMic();
+    // push video page with given channel name
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CallPage(
+          channelName: name,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleMic() async {
+    await PermissionHandler().requestPermissions(
+      [PermissionGroup.microphone],
     );
   }
 }
