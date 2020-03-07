@@ -24,7 +24,6 @@ class CallPage extends StatefulWidget {
 class _CallPageState extends State<CallPage> {
   Map users = LinkedHashMap<String, User>();
 
-  final _infoStrings = <String>[];
   bool muted = false;
 
   @override
@@ -46,13 +45,18 @@ class _CallPageState extends State<CallPage> {
 
   Future<void> initialize() async {
     if (APP_ID.isEmpty) {
-      setState(() {
-        _infoStrings.add(
-          'APP_ID missing, please provide your APP_ID in settings.dart',
+      Future.delayed(Duration.zero, () {
+        return showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Agora Engine is not starting"),
+              content: Text(
+                  'APP_ID missing, please provide your APP_ID in settings.dart'),
+            );
+          },
         );
-        _infoStrings.add('Agora Engine is not starting');
       });
-      return;
     }
 
     await _initAgoraRtcEngine();
@@ -73,7 +77,7 @@ class _CallPageState extends State<CallPage> {
     AgoraRtcEngine.onError = (dynamic code) {
       setState(() {
         final info = 'onError: $code';
-        _infoStrings.add(info);
+        this.showInSnackBar(info);
       });
     };
 
@@ -84,16 +88,13 @@ class _CallPageState extends State<CallPage> {
     ) {
       setState(() {
         final info = 'onJoinChannel: $channel, my uid: $uid';
-        _infoStrings.add(info);
-
-
-
+        this.showInSnackBar(info);
       });
     };
 
     AgoraRtcEngine.onLeaveChannel = () {
       setState(() {
-        _infoStrings.add('onLeaveChannel');
+        this.showInSnackBar('onLeaveChannel');
         users.clear();
       });
     };
@@ -101,7 +102,7 @@ class _CallPageState extends State<CallPage> {
     AgoraRtcEngine.onUserJoined = (int uid, int elapsed) {
       setState(() {
         final info = 'userJoined: $uid';
-        _infoStrings.add(info);
+        this.showInSnackBar(info);
 
         ApiRepository().getUserByUid(uid.toString()).then((u) {
           setState(() {
@@ -124,8 +125,8 @@ class _CallPageState extends State<CallPage> {
     AgoraRtcEngine.onUserOffline = (int uid, int reason) {
       setState(() {
         final info = 'userOffline: $uid';
-        _infoStrings.add(info);
-        users.remove(uid);
+        this.showInSnackBar(info);
+        users.removeWhere((key, value) => key == uid.toString());
       });
     };
 
@@ -137,13 +138,25 @@ class _CallPageState extends State<CallPage> {
     ) {
       setState(() {
         final info = 'firstRemoteVideo: $uid ${width}x $height';
-        _infoStrings.add(info);
+        this.showInSnackBar(info);
       });
     };
   }
 
   /// Video layout wrapper
   Widget _viewRows() {
+    if (users.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.only(bottom: 130),
+        child: Center(
+          child: Text(
+            "Jeszcze nikt nie dołączył do tej konwersacji... 😢",
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.only(bottom: 130),
       child: Container(
@@ -208,56 +221,6 @@ class _CallPageState extends State<CallPage> {
     );
   }
 
-  /// Info panel to show logs
-  Widget _panel() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 48),
-      alignment: Alignment.bottomCenter,
-      child: FractionallySizedBox(
-        heightFactor: 0.5,
-        child: Container(
-          padding: const EdgeInsets.only(bottom: 70),
-          child: ListView.builder(
-            reverse: true,
-            itemCount: _infoStrings.length,
-            itemBuilder: (BuildContext context, int index) {
-              if (_infoStrings.isEmpty) {
-                return null;
-              }
-              return Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 3,
-                  horizontal: 10,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 2,
-                          horizontal: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.yellowAccent,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Text(
-                          _infoStrings[index],
-                          style: TextStyle(color: Colors.blueGrey),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
   void _onCallEnd(BuildContext context) {
     Navigator.pop(context);
   }
@@ -272,13 +235,12 @@ class _CallPageState extends State<CallPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
+      key: _scaffoldKey,
       // backgroundColor: Colors.black,
       body: Center(
         child: Stack(
           children: <Widget>[
             _viewRows(),
-            // _panel(),
             _toolbar(),
           ],
         ),
@@ -286,5 +248,10 @@ class _CallPageState extends State<CallPage> {
     );
   }
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
+  void showInSnackBar(String value) {
+    _scaffoldKey.currentState
+        .showSnackBar(new SnackBar(content: new Text(value)));
+  }
 }
