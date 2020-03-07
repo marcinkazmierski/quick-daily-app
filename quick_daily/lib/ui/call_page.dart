@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:collection';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
+import 'package:quick_daily/models/team.dart';
+import 'package:quick_daily/models/user.dart';
+import 'package:quick_daily/repositories/api_repository.dart';
 
 // Agora AppId
 ///TODO: .gitignore:
@@ -18,14 +22,15 @@ class CallPage extends StatefulWidget {
 }
 
 class _CallPageState extends State<CallPage> {
-  static final _users = <int>[];
+  Map users = LinkedHashMap<String, User>();
+
   final _infoStrings = <String>[];
   bool muted = false;
 
   @override
   void dispose() {
     // clear users
-    _users.clear();
+    users.clear();
     // destroy sdk
     AgoraRtcEngine.leaveChannel();
     AgoraRtcEngine.destroy();
@@ -78,15 +83,18 @@ class _CallPageState extends State<CallPage> {
       int elapsed,
     ) {
       setState(() {
-        final info = 'onJoinChannel: $channel, uid: $uid';
+        final info = 'onJoinChannel: $channel, my uid: $uid';
         _infoStrings.add(info);
+
+
+
       });
     };
 
     AgoraRtcEngine.onLeaveChannel = () {
       setState(() {
         _infoStrings.add('onLeaveChannel');
-        _users.clear();
+        users.clear();
       });
     };
 
@@ -94,7 +102,22 @@ class _CallPageState extends State<CallPage> {
       setState(() {
         final info = 'userJoined: $uid';
         _infoStrings.add(info);
-        _users.add(uid);
+
+        ApiRepository().getUserByUid(uid.toString()).then((u) {
+          setState(() {
+            users.putIfAbsent(uid.toString(), () => u);
+          });
+        }).catchError((catchError) {
+          return showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text("API error"),
+                content: Text(catchError.toString()),
+              );
+            },
+          );
+        });
       });
     };
 
@@ -102,7 +125,7 @@ class _CallPageState extends State<CallPage> {
       setState(() {
         final info = 'userOffline: $uid';
         _infoStrings.add(info);
-        _users.remove(uid);
+        users.remove(uid);
       });
     };
 
@@ -119,67 +142,33 @@ class _CallPageState extends State<CallPage> {
     };
   }
 
-  /// Helper function to get list of native views
-  List<Widget> _getRenderViews() {
-    final List<AgoraRenderWidget> list = [
-      AgoraRenderWidget(0, local: true, preview: true),
-    ];
-    _users.forEach((int uid) => list.add(AgoraRenderWidget(uid)));
-    return list;
-  }
-
-  /// Video view wrapper
-  Widget _videoView(view) {
-    return Expanded(child: Container(child: view));
-  }
-
-  /// Video view row wrapper
-  Widget _expandedVideoRow(List<Widget> views) {
-    final wrappedViews = views.map<Widget>(_videoView).toList();
-    return Expanded(
-      child: Row(
-        children: wrappedViews,
+  /// Video layout wrapper
+  Widget _viewRows() {
+    return Container(
+      padding: const EdgeInsets.only(bottom: 130),
+      child: Container(
+        color: Colors.white,
+        child: ListView.builder(
+          itemCount: users.length,
+          shrinkWrap: true,
+          physics: ClampingScrollPhysics(),
+          itemBuilder: _buildItemsForListView,
+        ),
       ),
     );
   }
 
-  /// Video layout wrapper
-  Widget _viewRows() {
-    final views = _getRenderViews();
-    print("Viewers count: " + views.length.toString());
-    switch (views.length) {
-      case 1:
-        return Container(
-            child: Column(
-          children: <Widget>[_videoView(views[0])],
-        ));
-      case 2:
-        return Container(
-            child: Column(
-          children: <Widget>[
-            _expandedVideoRow([views[0]]),
-            _expandedVideoRow([views[1]])
-          ],
-        ));
-      case 3:
-        return Container(
-            child: Column(
-          children: <Widget>[
-            _expandedVideoRow(views.sublist(0, 2)),
-            _expandedVideoRow(views.sublist(2, 3))
-          ],
-        ));
-      case 4:
-        return Container(
-            child: Column(
-          children: <Widget>[
-            _expandedVideoRow(views.sublist(0, 2)),
-            _expandedVideoRow(views.sublist(2, 4))
-          ],
-        ));
-      default:
-    }
-    return Container();
+  Widget _buildItemsForListView(BuildContext context, int index) {
+    User user = users.values.toList()[index];
+
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundImage: NetworkImage(user.imageUrl),
+      ),
+      title: Text(user.name),
+      subtitle: Text(user.externalId),
+      trailing: Icon(Icons.mic),
+    );
   }
 
   /// Toolbar layout
@@ -283,16 +272,19 @@ class _CallPageState extends State<CallPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+
+      // backgroundColor: Colors.black,
       body: Center(
         child: Stack(
           children: <Widget>[
             _viewRows(),
-            _panel(),
+            // _panel(),
             _toolbar(),
           ],
         ),
       ),
     );
   }
+
+
 }

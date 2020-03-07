@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:quick_daily/models/team.dart';
+import 'package:quick_daily/models/user.dart';
+import 'package:random_string/random_string.dart';
 
 class ApiRepository {
   Future<String> authenticate({String username, String password}) async {
@@ -51,5 +53,17 @@ class ApiRepository {
 
     await Future.delayed(Duration(seconds: 1));
     return teams;
+  }
+
+  Future<User> getUserByUid(String uid) async {
+    User user = new User(
+        id: 1,
+        externalId: uid,
+        name: "John " + randomString(10),
+        description: "Holidays",
+        imageUrl:
+            "https://d36tnp772eyphs.cloudfront.net/blogs/1/2018/02/Machu-Picchu-around-sunset.jpg");
+    await Future.delayed(Duration(seconds: 1));
+    return user;
   }
 }
