@@ -17,8 +17,7 @@ class HomePage extends StatefulWidget {
 ///
 
 class HomeState extends State<HomePage> {
-  /// create a channelController to retrieve text value
-  final _channelController = TextEditingController();
+
 
   /// if channel textField is validated to have error
   bool _validateError = false;
@@ -88,7 +87,7 @@ class HomeState extends State<HomePage> {
       onTap: () {
         // do something
         /// TODO: new event -> new screen
-        onJoin(team.name);
+        onJoin(team);
       },
       onLongPress: () {
         // do something else
@@ -96,7 +95,7 @@ class HomeState extends State<HomePage> {
     );
   }
 
-  Future<void> onJoin(String name) async {
+  Future<void> onJoin(Team team) async {
     // update input validation
 
     // await for camera and mic permissions before pushing video page
@@ -107,7 +106,7 @@ class HomeState extends State<HomePage> {
       context,
       MaterialPageRoute(
         builder: (context) => CallPage(
-          channelName: name,
+          team: team,
         ),
       ),
     );

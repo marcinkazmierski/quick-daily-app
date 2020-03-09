@@ -6,16 +6,12 @@ import 'package:quick_daily/models/team.dart';
 import 'package:quick_daily/models/user.dart';
 import 'package:quick_daily/repositories/api_repository.dart';
 
-// Agora AppId
-///TODO: .gitignore:
-const APP_ID = '';
-
 class CallPage extends StatefulWidget {
   /// non-modifiable channel name of the page
-  final String channelName;
+  final Team team;
 
   /// Creates a call page with given channel name.
-  const CallPage({Key key, this.channelName}) : super(key: key);
+  const CallPage({Key key, this.team}) : super(key: key);
 
   @override
   _CallPageState createState() => _CallPageState();
@@ -44,7 +40,7 @@ class _CallPageState extends State<CallPage> {
   }
 
   Future<void> initialize() async {
-    if (APP_ID.isEmpty) {
+    if (widget.team.externalAppId.isEmpty) {
       Future.delayed(Duration.zero, () {
         return showDialog(
           context: context,
@@ -62,12 +58,12 @@ class _CallPageState extends State<CallPage> {
     await _initAgoraRtcEngine();
     _addAgoraEventHandlers();
     await AgoraRtcEngine.enableWebSdkInteroperability(true);
-    await AgoraRtcEngine.joinChannel(null, widget.channelName, null, 0);
+    await AgoraRtcEngine.joinChannel(null, widget.team.name, null, 0);
   }
 
   /// Create agora sdk instance and initialize
   Future<void> _initAgoraRtcEngine() async {
-    await AgoraRtcEngine.create(APP_ID);
+    await AgoraRtcEngine.create(widget.team.externalAppId);
     await AgoraRtcEngine.enableAudio();
     await AgoraRtcEngine.disableVideo(); // without video
   }

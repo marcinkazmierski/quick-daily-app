@@ -5,6 +5,9 @@ import 'package:quick_daily/models/user.dart';
 import 'package:random_string/random_string.dart';
 
 class ApiRepository {
+  //TODO: from API
+  static final APP_ID = 'xxx';
+
   Future<String> authenticate({String username, String password}) async {
     await Future.delayed(Duration(seconds: 1));
     return 'token';
@@ -34,6 +37,7 @@ class ApiRepository {
         id: 1,
         name: "Team A",
         description: "Work in Poznań",
+        externalAppId: ApiRepository.APP_ID,
         imageUrl:
             "https://d36tnp772eyphs.cloudfront.net/blogs/1/2018/02/Taj-Mahal.jpg"));
 
@@ -41,6 +45,7 @@ class ApiRepository {
         id: 2,
         name: "Team B",
         description: "Work in Home",
+        externalAppId: ApiRepository.APP_ID,
         imageUrl:
             "https://d36tnp772eyphs.cloudfront.net/blogs/1/2016/03/petra-jordan9.jpg"));
 
@@ -48,6 +53,7 @@ class ApiRepository {
         id: 3,
         name: "Team C",
         description: "Holidays",
+        externalAppId: ApiRepository.APP_ID,
         imageUrl:
             "https://d36tnp772eyphs.cloudfront.net/blogs/1/2018/02/Machu-Picchu-around-sunset.jpg"));
 
