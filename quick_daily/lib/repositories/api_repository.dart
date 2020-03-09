@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:quick_daily/common/exceptions/validator_exception.dart';
 import 'package:quick_daily/models/team.dart';
 import 'package:quick_daily/models/user.dart';
 import 'package:random_string/random_string.dart';
@@ -10,6 +11,9 @@ class ApiRepository {
 
   Future<String> authenticate({String username, String password}) async {
     await Future.delayed(Duration(seconds: 1));
+    if (username.isEmpty || password.isEmpty) {
+      throw new ValidatorException("Username or password is empty!");
+    }
     return 'token';
   }
 
