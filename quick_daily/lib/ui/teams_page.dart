@@ -2,70 +2,111 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_daily/blocs/authentication_bloc.dart';
+import 'package:quick_daily/blocs/teams_bloc.dart';
 import 'package:quick_daily/models/team.dart';
+import 'package:quick_daily/models/user.dart';
 import 'package:quick_daily/ui/call_page.dart';
 import 'package:quick_daily/repositories/api_repository.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class TeamsPage extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() => TeamsState();
-}
+class TeamsPage extends StatelessWidget {
+  final ApiRepository apiRepository;
 
-/// TODO: BLoC !!!!
-///
-///
-
-class TeamsState extends State<TeamsPage> {
-  List<Team> teams = new List<Team>();
-
-  @override
-  void initState() {
-    ApiRepository().getTeams().then((list) {
-      setState(() {
-        this.teams = list;
-      });
-    }).catchError((catchError) {
-      return showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("API error"),
-            content: Text(catchError.toString()),
-          );
-        },
-      );
-    });
-
-    super.initState();
-  }
+  TeamsPage({Key key, this.apiRepository})
+      : assert(apiRepository != null),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView(
-        children: <Widget>[
-          Column(
-            children: <Widget>[
-              Container(
-                child: Center(
-                    child: RaisedButton(
-                  child: Text('logout'),
-                  onPressed: () {
-                    BlocProvider.of<AuthenticationBloc>(context)
-                        .add(LoggedOut());
-                  },
-                )),
+      body: BlocProvider(
+        create: (context) {
+          return TeamsBloc(
+            apiRepository: apiRepository,
+          );
+        },
+        child: TeamsList(),
+      ),
+    );
+  }
+}
+
+class TeamsList extends StatefulWidget {
+  @override
+  State<TeamsList> createState() => _TeamsState();
+}
+
+class _TeamsState extends State<TeamsList> {
+  List<Team> teams = new List<Team>();
+
+  @override
+  Widget build(BuildContext context) {
+    BlocProvider.of<TeamsBloc>(context)
+        .add(FetchTeams(user: new User(name: "test")));
+
+    return BlocListener<TeamsBloc, TeamsState>(
+      listener: (context, state) {
+        if (state is TeamsError) {
+          Scaffold.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${state.error}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: BlocBuilder<TeamsBloc, TeamsState>(
+        builder: (context, state) {
+          if (state is TeamsLoaded) {
+            this.teams = state.teams;
+            return Scaffold(
+              body: ListView(
+                children: <Widget>[
+                  Column(
+                    children: <Widget>[
+                      _logoutContainer(context),
+                      ListView.builder(
+                        itemCount: teams.length,
+                        shrinkWrap: true,
+                        physics: ClampingScrollPhysics(),
+                        itemBuilder: _buildItemsForListView,
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              ListView.builder(
-                itemCount: teams.length,
-                shrinkWrap: true,
-                physics: ClampingScrollPhysics(),
-                itemBuilder: _buildItemsForListView,
-              ),
-            ],
-          ),
-        ],
+            );
+          }
+
+          return Scaffold(
+            body: ListView(
+              children: <Widget>[
+                Column(
+                  children: <Widget>[
+                    _logoutContainer(context),
+                    Container(
+                      padding: EdgeInsets.only(top: 20),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _logoutContainer(BuildContext context) {
+    return Container(
+      child: Center(
+        child: RaisedButton(
+          child: Text('logout'),
+          onPressed: () {
+            BlocProvider.of<AuthenticationBloc>(context).add(LoggedOut());
+          },
+        ),
       ),
     );
   }
@@ -80,12 +121,7 @@ class TeamsState extends State<TeamsPage> {
       subtitle: Text(team.description),
       trailing: Icon(Icons.keyboard_arrow_right),
       onTap: () {
-        // do something
-        /// TODO: new event -> new screen
         onJoin(team);
-      },
-      onLongPress: () {
-        // do something else
       },
     );
   }

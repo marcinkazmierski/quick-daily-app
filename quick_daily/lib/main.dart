@@ -55,7 +55,7 @@ class App extends StatelessWidget {
       home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
         builder: (context, state) {
           if (state is AuthenticationAuthenticated) {
-            return TeamsPage();
+            return TeamsPage(apiRepository: apiRepository);
           }
           if (state is AuthenticationUnauthenticated) {
             return LoginPage(apiRepository: apiRepository);
