@@ -7,21 +7,16 @@ import 'package:quick_daily/ui/call_page.dart';
 import 'package:quick_daily/repositories/api_repository.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class HomePage extends StatefulWidget {
+class TeamsPage extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => HomeState();
+  State<StatefulWidget> createState() => TeamsState();
 }
 
 /// TODO: BLoC !!!!
 ///
 ///
 
-class HomeState extends State<HomePage> {
-
-
-  /// if channel textField is validated to have error
-  bool _validateError = false;
-
+class TeamsState extends State<TeamsPage> {
   List<Team> teams = new List<Team>();
 
   @override

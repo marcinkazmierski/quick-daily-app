@@ -42,16 +42,7 @@ class _CallPageState extends State<CallPage> {
   Future<void> initialize() async {
     if (widget.team.externalAppId.isEmpty) {
       Future.delayed(Duration.zero, () {
-        return showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Text("Agora Engine is not starting"),
-              content: Text(
-                  'APP_ID missing, please provide your APP_ID in settings.dart'),
-            );
-          },
-        );
+        this.showInSnackBar("Agora Engine is not starting - APP_ID missing.");
       });
     }
 

@@ -5,8 +5,8 @@ import 'package:quick_daily/ui/login_page.dart';
 import 'package:quick_daily/repositories/api_repository.dart';
 import 'package:quick_daily/blocs/authentication_bloc.dart';
 import 'package:quick_daily/ui/splash_page.dart';
-import 'package:quick_daily/ui/home_page.dart';
 import 'package:quick_daily/common/loading_indicator.dart';
+import 'package:quick_daily/ui/teams_page.dart';
 
 class SimpleBlocDelegate extends BlocDelegate {
   @override
@@ -55,7 +55,7 @@ class App extends StatelessWidget {
       home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
         builder: (context, state) {
           if (state is AuthenticationAuthenticated) {
-            return HomePage();
+            return TeamsPage();
           }
           if (state is AuthenticationUnauthenticated) {
             return LoginPage(apiRepository: apiRepository);
