@@ -69,7 +69,10 @@ class _LoginFormState extends State<LoginForm> {
                   decoration: new BoxDecoration(
                       image: new DecorationImage(
                           fit: BoxFit.cover,
-                          image: AssetImage("assets/images/background.jpg"))),
+                          image: AssetImage("assets/images/bg1.jpg"))),
+                ),
+                Container(
+                  color: Color.fromRGBO(0, 0, 0, 0.2),
                 ),
                 Center(
                   child: SingleChildScrollView(
@@ -91,13 +94,16 @@ class _LoginFormState extends State<LoginForm> {
                         FadeAnimation(
                             2,
                             TextFormField(
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
                               controller: _usernameController,
                               decoration: InputDecoration(
                                   prefixIcon: Icon(
                                     Icons.person,
                                     color: Colors.white,
                                   ),
-                                  hintStyle: TextStyle(color: Colors.white),
+                                  hintStyle: TextStyle(color: Colors.white54),
                                   filled: true,
                                   fillColor: Colors.black45,
                                   hintText: 'Username'),
@@ -108,13 +114,16 @@ class _LoginFormState extends State<LoginForm> {
                         FadeAnimation(
                             2,
                             TextFormField(
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
                               controller: _passwordController,
                               obscureText: true,
                               decoration: InputDecoration(
                                   filled: true,
                                   prefixIcon:
                                       Icon(Icons.lock, color: Colors.white),
-                                  hintStyle: TextStyle(color: Colors.white),
+                                  hintStyle: TextStyle(color: Colors.white54),
                                   fillColor: Colors.black45,
                                   hintText: 'Password'),
                             )),
