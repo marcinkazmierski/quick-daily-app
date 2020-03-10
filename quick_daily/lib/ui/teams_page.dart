@@ -62,9 +62,31 @@ class _TeamsState extends State<TeamsList> {
             return Scaffold(
               body: ListView(
                 children: <Widget>[
+                  Container(
+                    alignment: Alignment.topRight,
+                    child: PopupMenuButton<String>(
+                      onSelected: (result) {
+                        if (result == 'logout') {
+                          BlocProvider.of<AuthenticationBloc>(context)
+                              .add(LoggedOut());
+                        }
+                      },
+                      itemBuilder: (BuildContext context) =>
+                          <PopupMenuItem<String>>[
+                        PopupMenuItem<String>(
+                          value: 'logout',
+                          child: Row(
+                            children: <Widget>[
+                              Icon(Icons.exit_to_app),
+                              Text("Logout")
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   Column(
                     children: <Widget>[
-                      _logoutContainer(context),
                       ListView.builder(
                         itemCount: teams.length,
                         shrinkWrap: true,
