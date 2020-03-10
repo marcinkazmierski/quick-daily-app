@@ -116,18 +116,6 @@ class _CallPageState extends State<CallPage> {
         users.removeWhere((key, value) => key == uid.toString());
       });
     };
-
-    AgoraRtcEngine.onFirstRemoteVideoFrame = (
-      int uid,
-      int width,
-      int height,
-      int elapsed,
-    ) {
-      setState(() {
-        final info = 'firstRemoteVideo: $uid ${width}x $height';
-        this.showInSnackBar(info);
-      });
-    };
   }
 
   /// Video layout wrapper

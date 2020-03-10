@@ -69,7 +69,7 @@ class _LoginFormState extends State<LoginForm> {
                   decoration: new BoxDecoration(
                       image: new DecorationImage(
                           fit: BoxFit.cover,
-                          image: AssetImage("assets/images/bg1.jpg"))),
+                          image: AssetImage("assets/images/bg2.jpg"))),
                 ),
                 Container(
                   color: Color.fromRGBO(0, 0, 0, 0.2),
