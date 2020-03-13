@@ -1,67 +1,82 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:quick_daily/common/exceptions/validator_exception.dart';
+import 'package:quick_daily/common/keystore.dart';
 import 'package:quick_daily/models/team.dart';
 import 'package:quick_daily/models/user.dart';
 import 'package:random_string/random_string.dart';
+import 'dart:io';
 
 class ApiRepository {
-  //TODO: from API
-  static final APP_ID = 'xxx';
+  static final USER_AUTH_TOKEN = 'user-auth-token';
+
+  static final API_URL = 'http://192.168.1.204:8106/api/v1/'; // todo: config
 
   Future<String> authenticate({String username, String password}) async {
-    await Future.delayed(Duration(seconds: 1));
     if (username.isEmpty || password.isEmpty) {
       throw new ValidatorException("Username or password is empty!");
     }
-    return 'token';
+    Map data = {'email': username, 'password': password};
+    var body = json.encode(data);
+
+    final response = await http.post(API_URL + 'auth/authenticate',
+        headers: {
+          HttpHeaders.contentTypeHeader: "application/json",
+        },
+        body: body);
+    Map decoded = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      return decoded['token'];
+    } else {
+      throw Exception(decoded['error']['userMessage']);
+    }
   }
 
   Future<void> deleteToken() async {
     /// delete from keystore/keychain
-    await Future.delayed(Duration(seconds: 1));
+    Keystore().set(USER_AUTH_TOKEN, null);
     return;
   }
 
   Future<void> persistToken(String token) async {
     /// write to keystore/keychain
-    await Future.delayed(Duration(seconds: 1));
+    Keystore().set(USER_AUTH_TOKEN, token);
     return;
   }
 
   Future<bool> hasToken() async {
     /// read from keystore/keychain
-    await Future.delayed(Duration(seconds: 1));
-    return false;
+    bool hasToken = false;
+    await Keystore().get(USER_AUTH_TOKEN).then((token) {
+      hasToken = token.toString().isNotEmpty;
+    });
+
+    return hasToken;
   }
 
   Future<List<Team>> getTeams() async {
     List<Team> teams = new List<Team>();
-    teams.add(Team(
-        id: 1,
-        name: "Team A",
-        description: "Work in Poznań",
-        externalAppId: ApiRepository.APP_ID,
-        imageUrl:
-            "https://d36tnp772eyphs.cloudfront.net/blogs/1/2018/02/Taj-Mahal.jpg"));
 
-    teams.add(Team(
-        id: 2,
-        name: "Team B",
-        description: "Work in Home",
-        externalAppId: ApiRepository.APP_ID,
-        imageUrl:
-            "https://d36tnp772eyphs.cloudfront.net/blogs/1/2016/03/petra-jordan9.jpg"));
+    String userToken = '';
+    await Keystore().get(USER_AUTH_TOKEN).then((token) {
+      userToken = token.toString();
+    });
 
-    teams.add(Team(
-        id: 3,
-        name: "Team C",
-        description: "Holidays",
-        externalAppId: ApiRepository.APP_ID,
-        imageUrl:
-            "https://d36tnp772eyphs.cloudfront.net/blogs/1/2018/02/Machu-Picchu-around-sunset.jpg"));
+    final response = await http.get(API_URL + 'teams', headers: {
+      HttpHeaders.contentTypeHeader: "application/json",
+      "X-AUTH-TOKEN": userToken,
+    });
+    Map decoded = jsonDecode(response.body);
 
-    await Future.delayed(Duration(seconds: 1));
+    if (response.statusCode == 200) {
+      List<dynamic> list = decoded['teams'];
+      teams = list.map((i) => Team.fromJson(i)).toList();
+    } else {
+      throw Exception(decoded['error']['userMessage']);
+    }
+
     return teams;
   }
 
