@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:equatable/equatable.dart';
 import 'package:bloc/bloc.dart';
@@ -78,6 +79,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
         authenticationBloc.add(LoggedIn(token: token));
         yield LoginInitial();
+      } on SocketException catch (error) {
+        yield LoginFailure(error: "No internet is available");
       } catch (error) {
         yield LoginFailure(error: error.toString());
       }
