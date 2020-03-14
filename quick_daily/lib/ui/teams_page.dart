@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_daily/blocs/authentication_bloc.dart';
 import 'package:quick_daily/blocs/teams_bloc.dart';
 import 'package:quick_daily/models/team.dart';
+import 'package:quick_daily/models/user.dart';
 import 'package:quick_daily/ui/call_page.dart';
 import 'package:quick_daily/repositories/api_repository.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -37,6 +38,7 @@ class TeamsList extends StatefulWidget {
 
 class _TeamsState extends State<TeamsList> {
   List<Team> teams = new List<Team>();
+  User currentUser;
 
   @override
   Widget build(BuildContext context) {
@@ -57,31 +59,59 @@ class _TeamsState extends State<TeamsList> {
         builder: (context, state) {
           if (state is TeamsLoaded) {
             this.teams = state.teams;
+            this.currentUser = state.user;
             return Scaffold(
               body: ListView(
                 children: <Widget>[
-                  Container(
-                    alignment: Alignment.topRight,
-                    child: PopupMenuButton<String>(
-                      onSelected: (result) {
-                        if (result == 'logout') {
-                          BlocProvider.of<AuthenticationBloc>(context)
-                              .add(LoggedOut());
-                        }
-                      },
-                      itemBuilder: (BuildContext context) =>
-                          <PopupMenuItem<String>>[
-                        PopupMenuItem<String>(
-                          value: 'logout',
-                          child: Row(
-                            children: <Widget>[
-                              Icon(Icons.exit_to_app),
-                              Text("Logout")
-                            ],
-                          ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Container(
+                          padding: EdgeInsets.only(left: 20),
+                          child: Text(this.currentUser.name,
+                              style: TextStyle(fontStyle: FontStyle.italic))),
+                      Container(
+                        alignment: Alignment.topRight,
+                        child: PopupMenuButton<String>(
+                          onSelected: (result) {
+                            if (result == 'logout') {
+                              BlocProvider.of<AuthenticationBloc>(context)
+                                  .add(LoggedOut());
+                            } else {
+                              Scaffold.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                      Text('Feature is not implemented yet'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          },
+                          itemBuilder: (BuildContext context) =>
+                              <PopupMenuItem<String>>[
+                            PopupMenuItem<String>(
+                              value: 'profile',
+                              child: Row(
+                                children: <Widget>[
+                                  Image.network(this.currentUser.imageUrl,
+                                      width: 25),
+                                  Text(this.currentUser.name)
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'logout',
+                              child: Row(
+                                children: <Widget>[
+                                  Icon(Icons.exit_to_app),
+                                  Text("Logout")
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                   Column(
                     children: <Widget>[

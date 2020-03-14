@@ -100,6 +100,21 @@ class ApiRepository {
     throw Exception("Get user profile - general error!");
   }
 
+  Future<User> getCurrentUser() async {
+    String userToken = await _getUserToken();
+
+    final response = await http.get(API_URL + 'users/current', headers: {
+      HttpHeaders.contentTypeHeader: "application/json",
+      "X-AUTH-TOKEN": userToken,
+    });
+    Map decoded = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      return User.fromJson(decoded);
+    } else {
+      throw Exception(decoded['error']['userMessage']);
+    }
+  }
+
   Future<void> initCall(Team team, String callId) async {
     if (callId.isEmpty) {
       throw new ValidatorException("callId is empty!");

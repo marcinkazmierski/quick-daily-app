@@ -20,11 +20,12 @@ class TeamsLoading extends TeamsState {}
 
 class TeamsLoaded extends TeamsState {
   final List<Team> teams;
+  final User user;
 
-  const TeamsLoaded({this.teams});
+  const TeamsLoaded({this.teams, this.user});
 
   @override
-  List<Object> get props => [teams];
+  List<Object> get props => [teams, user];
 }
 
 class TeamsError extends TeamsState {
@@ -69,7 +70,8 @@ class TeamsBloc extends Bloc<TeamsEvent, TeamsState> {
       yield TeamsLoading();
       try {
         final List<Team> teams = await apiRepository.getTeams();
-        yield TeamsLoaded(teams: teams);
+        final User user = await apiRepository.getCurrentUser();
+        yield TeamsLoaded(teams: teams, user: user);
       } catch (error) {
         yield TeamsError(error: error.toString());
       }

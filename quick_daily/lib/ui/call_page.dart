@@ -62,10 +62,8 @@ class _CallPageState extends State<CallPage> {
   /// Add agora event handlers
   void _addAgoraEventHandlers() {
     AgoraRtcEngine.onError = (dynamic code) {
-      setState(() {
-        final info = 'onError: $code';
-        this.showInSnackBar(info);
-      });
+      final info = 'onError: $code';
+      this.showInSnackBar(info);
     };
 
     AgoraRtcEngine.onJoinChannelSuccess = (
@@ -73,10 +71,9 @@ class _CallPageState extends State<CallPage> {
       int uid,
       int elapsed,
     ) {
+      final info = 'onJoinChannel: $channel, my uid: $uid';
+      this.showInSnackBar(info);
       setState(() {
-        final info = 'onJoinChannel: $channel, my uid: $uid';
-        this.showInSnackBar(info);
-
         ApiRepository().initCall(widget.team, uid.toString()).then((u) {
           ///
         }).catchError((catchError) {
@@ -94,21 +91,21 @@ class _CallPageState extends State<CallPage> {
     };
 
     AgoraRtcEngine.onLeaveChannel = () {
+      this.showInSnackBar('onLeaveChannel');
       setState(() {
-        this.showInSnackBar('onLeaveChannel');
         users.clear();
       });
     };
 
     AgoraRtcEngine.onUserJoined = (int uid, int elapsed) {
       setState(() {
-        final info = 'userJoined: $uid';
-        this.showInSnackBar(info);
-
         ApiRepository().getUserByUid(uid.toString()).then((u) {
           setState(() {
             users.putIfAbsent(uid.toString(), () => u);
           });
+
+          final info = 'userJoined: ' + u.name;
+          this.showInSnackBar(info);
         }).catchError((catchError) {
           return showDialog(
             context: context,
@@ -124,9 +121,10 @@ class _CallPageState extends State<CallPage> {
     };
 
     AgoraRtcEngine.onUserOffline = (int uid, int reason) {
+      User user = users[uid.toString()];
+      final info = 'userOffline: ' + user.name;
+      this.showInSnackBar(info);
       setState(() {
-        final info = 'userOffline: $uid';
-        this.showInSnackBar(info);
         users.removeWhere((key, value) => key == uid.toString());
       });
     };
