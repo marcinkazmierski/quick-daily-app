@@ -108,6 +108,16 @@ class _TeamsState extends State<TeamsList> {
                                 ],
                               ),
                             ),
+                            PopupMenuItem<String>(
+                              child: Row(
+                                children: <Widget>[
+                                  Text("ver: 0.2",
+                                      style: TextStyle(
+                                          fontStyle: FontStyle.italic,
+                                          color: Colors.grey))
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
