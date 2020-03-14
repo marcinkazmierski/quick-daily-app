@@ -5,7 +5,6 @@ import 'package:quick_daily/common/exceptions/validator_exception.dart';
 import 'package:quick_daily/common/keystore.dart';
 import 'package:quick_daily/models/team.dart';
 import 'package:quick_daily/models/user.dart';
-import 'package:random_string/random_string.dart';
 import 'dart:io';
 
 class ApiRepository {
@@ -59,10 +58,7 @@ class ApiRepository {
   Future<List<Team>> getTeams() async {
     List<Team> teams = new List<Team>();
 
-    String userToken = '';
-    await Keystore().get(USER_AUTH_TOKEN).then((token) {
-      userToken = token.toString();
-    });
+    String userToken = await _getUserToken();
 
     final response = await http.get(API_URL + 'teams', headers: {
       HttpHeaders.contentTypeHeader: "application/json",
@@ -81,14 +77,57 @@ class ApiRepository {
   }
 
   Future<User> getUserByUid(String uid) async {
-    User user = new User(
-        id: 1,
-        externalId: uid,
-        name: "John " + randomString(10),
-        description: "Holidays",
-        imageUrl:
-            "https://d36tnp772eyphs.cloudfront.net/blogs/1/2018/02/Machu-Picchu-around-sunset.jpg");
-    await Future.delayed(Duration(seconds: 1));
-    return user;
+    String userToken = await _getUserToken();
+    // await Future.delayed(Duration(seconds: 1));
+    int retry = 3;
+    while (retry > 0) {
+      print(">>> retry: " + retry.toString());
+      final response = await http.get(API_URL + 'users/' + uid, headers: {
+        HttpHeaders.contentTypeHeader: "application/json",
+        "X-AUTH-TOKEN": userToken,
+      });
+      Map decoded = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return User.fromJson(decoded);
+      }
+      retry--;
+      if (retry == 0) {
+        throw Exception(decoded['error']['userMessage']);
+      }
+      await Future.delayed(Duration(seconds: 1));
+    }
+
+    throw Exception("Get user profile - general error!");
+  }
+
+  Future<void> initCall(Team team, String callId) async {
+    if (callId.isEmpty) {
+      throw new ValidatorException("callId is empty!");
+    }
+    String userToken = await _getUserToken();
+    Map data = {'callId': callId, 'teamId': team.id};
+    var body = json.encode(data);
+
+    final response = await http.post(API_URL + 'users/call',
+        headers: {
+          HttpHeaders.contentTypeHeader: "application/json",
+          "X-AUTH-TOKEN": userToken,
+        },
+        body: body);
+
+    if (response.statusCode == 204) {
+      return;
+    } else {
+      Map decoded = jsonDecode(response.body);
+      throw Exception(decoded['error']['userMessage']);
+    }
+  }
+
+  Future<String> _getUserToken() async {
+    String userToken = '';
+    await Keystore().get(USER_AUTH_TOKEN).then((token) {
+      userToken = token.toString();
+    });
+    return userToken;
   }
 }

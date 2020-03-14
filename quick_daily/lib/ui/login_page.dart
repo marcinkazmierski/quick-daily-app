@@ -106,7 +106,7 @@ class _LoginFormState extends State<LoginForm> {
                                   hintStyle: TextStyle(color: Colors.white54),
                                   filled: true,
                                   fillColor: Colors.black45,
-                                  hintText: 'Username'),
+                                  hintText: 'E-mail'),
                             )),
                         SizedBox(
                           height: 10.0,

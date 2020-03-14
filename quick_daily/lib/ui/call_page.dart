@@ -76,6 +76,20 @@ class _CallPageState extends State<CallPage> {
       setState(() {
         final info = 'onJoinChannel: $channel, my uid: $uid';
         this.showInSnackBar(info);
+
+        ApiRepository().initCall(widget.team, uid.toString()).then((u) {
+          ///
+        }).catchError((catchError) {
+          return showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text("API error"),
+                content: Text(catchError.toString()),
+              );
+            },
+          );
+        });
       });
     };
 
@@ -154,7 +168,7 @@ class _CallPageState extends State<CallPage> {
         backgroundImage: NetworkImage(user.imageUrl),
       ),
       title: Text(user.name),
-      subtitle: Text(user.externalId),
+      subtitle: Text("External ID: " + user.externalId),
       trailing: Icon(Icons.mic),
     );
   }

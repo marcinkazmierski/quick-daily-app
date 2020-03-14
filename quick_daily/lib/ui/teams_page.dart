@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_daily/blocs/authentication_bloc.dart';
 import 'package:quick_daily/blocs/teams_bloc.dart';
 import 'package:quick_daily/models/team.dart';
-import 'package:quick_daily/models/user.dart';
 import 'package:quick_daily/ui/call_page.dart';
 import 'package:quick_daily/repositories/api_repository.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -41,8 +40,7 @@ class _TeamsState extends State<TeamsList> {
 
   @override
   Widget build(BuildContext context) {
-    BlocProvider.of<TeamsBloc>(context)
-        .add(FetchTeams(user: new User(name: "test")));
+    BlocProvider.of<TeamsBloc>(context).add(FetchTeams());
 
     return BlocListener<TeamsBloc, TeamsState>(
       listener: (context, state) {

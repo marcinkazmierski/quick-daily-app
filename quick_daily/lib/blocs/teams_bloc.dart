@@ -45,15 +45,13 @@ abstract class TeamsEvent extends Equatable {
 }
 
 class FetchTeams extends TeamsEvent {
-  final User user;
-
-  const FetchTeams({this.user}) : assert(user != null);
+  const FetchTeams();
 
   @override
-  List<Object> get props => [user];
+  List<Object> get props => [];
 
   @override
-  String toString() => 'FetchTeams { for user: ' + this.user.name + ' }';
+  String toString() => 'FetchTeams {}';
 }
 
 /// BLOC
