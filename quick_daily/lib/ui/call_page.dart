@@ -50,6 +50,7 @@ class _CallPageState extends State<CallPage> {
     _addAgoraEventHandlers();
     await AgoraRtcEngine.enableWebSdkInteroperability(true);
     await AgoraRtcEngine.joinChannel(null, widget.team.name, null, 0);
+    await AgoraRtcEngine.enableAudioVolumeIndication(200, 3, false);
   }
 
   /// Create agora sdk instance and initialize
@@ -128,6 +129,26 @@ class _CallPageState extends State<CallPage> {
         users.removeWhere((key, value) => key == uid.toString());
       });
     };
+
+    AgoraRtcEngine.onAudioVolumeIndication =
+        (int totalVolume, List<AudioVolumeInfo> speakers) {
+      /// Total volume after audio mixing. The value ranges between 0 (lowest volume) and 255 (highest volume).
+      setState(() {
+        users.forEach((key, user) {
+          user.speakingVolume = 0;
+        });
+
+        for (var i = 0; i < speakers.length; i++) {
+          AudioVolumeInfo info = speakers[i];
+
+          if (users.containsKey(info.uid.toString())) {
+            User user = users[info.uid.toString()];
+            user.speakingVolume = info.volume;
+            users[info.uid.toString()] = user;
+          }
+        }
+      });
+    };
   }
 
   /// Video layout wrapper
@@ -161,13 +182,20 @@ class _CallPageState extends State<CallPage> {
   Widget _buildItemsForListView(BuildContext context, int index) {
     User user = users.values.toList()[index];
 
+    Color micColor = Colors.grey;
+    if (user.speakingVolume > 0 && user.speakingVolume < 100) {
+      micColor = Colors.blue;
+    } else if (user.speakingVolume >= 100) {
+      micColor = Colors.red;
+    }
+
     return ListTile(
       leading: CircleAvatar(
         backgroundImage: NetworkImage(user.imageUrl),
       ),
       title: Text(user.name),
       subtitle: Text("External ID: " + user.externalId),
-      trailing: Icon(Icons.mic),
+      trailing: Icon(Icons.mic, color: micColor),
     );
   }
 

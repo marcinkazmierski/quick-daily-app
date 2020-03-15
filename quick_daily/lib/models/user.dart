@@ -4,6 +4,7 @@ class User {
   String name;
   String description;
   String imageUrl;
+  int speakingVolume = 0;
 
   User({this.id, this.externalId, this.name, this.description, this.imageUrl});
 
