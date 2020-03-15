@@ -1,2 +1,3 @@
 # quick-daily-app
-Flutter mobile app
+[README.md](quick_daily/README.md)
+
