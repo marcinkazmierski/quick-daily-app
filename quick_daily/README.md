@@ -26,3 +26,7 @@ samples, guidance on mobile development, and a full API reference.
 ![Login page](screenshots/Screenshot_1.png)
 ![List of teams](screenshots/Screenshot_2.png)
 ![Call view](screenshots/Screenshot_3.png)
+
+
+## TODO:
+- registration page

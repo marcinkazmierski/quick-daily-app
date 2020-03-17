@@ -138,21 +138,25 @@ class _TeamsState extends State<TeamsList> {
             );
           }
 
-          return Scaffold(
-            body: ListView(
-              children: <Widget>[
-                Column(
-                  children: <Widget>[
-                    _logoutContainer(context),
-                    Container(
-                      padding: EdgeInsets.only(top: 20),
-                      child: CircularProgressIndicator(),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
+          if (state is TeamsLoading) {
+            return Scaffold(
+              body: ListView(
+                children: <Widget>[
+                  Column(
+                    children: <Widget>[
+                      _logoutContainer(context),
+                      Container(
+                        padding: EdgeInsets.only(top: 20),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Scaffold(); //emmpty
         },
       ),
     );
