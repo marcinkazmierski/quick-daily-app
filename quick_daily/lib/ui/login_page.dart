@@ -133,7 +133,15 @@ class _LoginFormState extends State<LoginForm> {
                         FadeAnimation(
                             2,
                             FlatButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Scaffold.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          'Feature is not implemented yet'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                },
                                 child: Text(
                                   'Forgot your Password?',
                                   style: TextStyle(color: Colors.white),
@@ -164,7 +172,15 @@ class _LoginFormState extends State<LoginForm> {
                         FadeAnimation(
                             2,
                             RaisedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                Scaffold.of(context).showSnackBar(
+                                  SnackBar(
+                                    content:
+                                        Text('Feature is not implemented yet'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              },
                               child: Padding(
                                   padding: EdgeInsets.all(15.0),
                                   child: Text('REGISTER')),

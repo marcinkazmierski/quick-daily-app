@@ -156,7 +156,9 @@ class _TeamsState extends State<TeamsList> {
             );
           }
 
-          return Scaffold(); //emmpty
+          return Scaffold(
+            body: _logoutContainer(context),
+          ); //emmpty
         },
       ),
     );
