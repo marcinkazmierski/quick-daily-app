@@ -18,7 +18,7 @@ class CallPage extends StatelessWidget {
     return Scaffold(
       body: BlocProvider(
         create: (context) {
-          return CallBloc(team: this.team);
+          return CallBloc();
         },
         child: CallView(team: this.team),
       ),
@@ -40,6 +40,8 @@ class _CallPageState extends State<CallView> {
 
   bool muted = false;
 
+  CallBloc _callBloc;
+
   @override
   void dispose() {
     // clear users
@@ -52,6 +54,8 @@ class _CallPageState extends State<CallView> {
 
   @override
   void initState() {
+    _callBloc = new CallBloc();
+    _callBloc.add(InitialCall(team: this.widget.team));
     super.initState();
     // initialize agora sdk
     initialize();
@@ -263,7 +267,7 @@ class _CallPageState extends State<CallView> {
 
   @override
   Widget build(BuildContext context) {
-    BlocProvider.of<CallBloc>(context).add(InitialCall(team: this.widget.team));
+    // BlocProvider.of<CallBloc>(context).add(InitialCall(team: this.widget.team));
 
     return BlocListener<CallBloc, CallState>(
       listener: (context, state) {

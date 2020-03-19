@@ -82,9 +82,7 @@ class UserOffline extends CallEvent {
 
 /// BLOC
 class CallBloc extends Bloc<CallEvent, CallState> {
-  final Team team;
 
-  CallBloc({this.team});
 
   @override
   CallState get initialState => CallNotConnected();
@@ -93,7 +91,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   Stream<CallState> mapEventToState(CallEvent event) async* {
     if (event is InitialCall) {
       try {
-        if (this.team.externalAppId.isEmpty) {
+        if (event.team.externalAppId.isEmpty) {
           throw new ValidatorException("Team externalAppId is empty!");
         }
 
