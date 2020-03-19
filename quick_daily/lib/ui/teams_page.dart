@@ -158,7 +158,7 @@ class _TeamsState extends State<TeamsList> {
 
           return Scaffold(
             body: _logoutContainer(context),
-          ); //emmpty
+          );
         },
       ),
     );

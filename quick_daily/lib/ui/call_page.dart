@@ -2,22 +2,40 @@ import 'dart:async';
 import 'dart:collection';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
+import 'package:quick_daily/blocs/call_bloc.dart';
 import 'package:quick_daily/models/team.dart';
 import 'package:quick_daily/models/user.dart';
 import 'package:quick_daily/repositories/api_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class CallPage extends StatefulWidget {
-  /// non-modifiable channel name of the page
+class CallPage extends StatelessWidget {
   final Team team;
 
-  /// Creates a call page with given channel name.
   const CallPage({Key key, this.team}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: BlocProvider(
+        create: (context) {
+          return CallBloc(team: this.team);
+        },
+        child: CallView(team: this.team),
+      ),
+    );
+  }
+}
+
+class CallView extends StatefulWidget {
+  final Team team;
+
+  const CallView({Key key, this.team}) : super(key: key);
 
   @override
   _CallPageState createState() => _CallPageState();
 }
 
-class _CallPageState extends State<CallPage> {
+class _CallPageState extends State<CallView> {
   Map users = LinkedHashMap<String, User>();
 
   bool muted = false;
@@ -46,18 +64,14 @@ class _CallPageState extends State<CallPage> {
       });
     }
 
-    await _initAgoraRtcEngine();
+    await AgoraRtcEngine.create(widget.team.externalAppId);
+    await AgoraRtcEngine.enableAudio();
+    await AgoraRtcEngine.disableVideo(); // without video
+
     _addAgoraEventHandlers();
     await AgoraRtcEngine.enableWebSdkInteroperability(true);
     await AgoraRtcEngine.joinChannel(null, widget.team.name, null, 0);
     await AgoraRtcEngine.enableAudioVolumeIndication(200, 3, false);
-  }
-
-  /// Create agora sdk instance and initialize
-  Future<void> _initAgoraRtcEngine() async {
-    await AgoraRtcEngine.create(widget.team.externalAppId);
-    await AgoraRtcEngine.enableAudio();
-    await AgoraRtcEngine.disableVideo(); // without video
   }
 
   /// Add agora event handlers
@@ -249,16 +263,38 @@ class _CallPageState extends State<CallPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      // backgroundColor: Colors.black,
-      body: Center(
-        child: Stack(
-          children: <Widget>[
-            _viewRows(),
-            _toolbar(),
-          ],
-        ),
+    BlocProvider.of<CallBloc>(context).add(InitialCall(team: this.widget.team));
+
+    return BlocListener<CallBloc, CallState>(
+      listener: (context, state) {
+        if (state is CallError) {
+          Scaffold.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${state.error}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: BlocBuilder<CallBloc, CallState>(
+        builder: (context, state) {
+          if (state is CallConnected) {
+            return Scaffold(
+              key: _scaffoldKey,
+              // backgroundColor: Colors.black,
+              body: Center(
+                child: Stack(
+                  children: <Widget>[
+                    _viewRows(),
+                    _toolbar(),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return Scaffold(); //empty
+        },
       ),
     );
   }

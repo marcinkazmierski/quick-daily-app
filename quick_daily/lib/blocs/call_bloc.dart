@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:bloc/bloc.dart';
+import 'package:quick_daily/common/exceptions/validator_exception.dart';
+import 'package:quick_daily/models/team.dart';
 
 ///STATES
 abstract class CallState extends Equatable {
@@ -42,12 +44,16 @@ abstract class CallEvent extends Equatable {
   const CallEvent();
 }
 
-class JoinChannelSuccess extends CallEvent {
-  @override
-  List<Object> get props => [];
+class InitialCall extends CallEvent {
+  final Team team;
+
+  const InitialCall({this.team});
 
   @override
-  String toString() => 'JoinChannelSuccess {}';
+  List<Object> get props => [this.team];
+
+  @override
+  String toString() => 'InitialCall {team: ' + this.team.name + '}';
 }
 
 class LeaveChannel extends CallEvent {
@@ -76,27 +82,45 @@ class UserOffline extends CallEvent {
 
 /// BLOC
 class CallBloc extends Bloc<CallEvent, CallState> {
+  final Team team;
+
+  CallBloc({this.team});
+
   @override
   CallState get initialState => CallNotConnected();
 
   @override
   Stream<CallState> mapEventToState(CallEvent event) async* {
-    if (event is JoinChannelSuccess) {
-      yield CallConnecting();
+    if (event is InitialCall) {
       try {
+        if (this.team.externalAppId.isEmpty) {
+          throw new ValidatorException("Team externalAppId is empty!");
+        }
+
+        yield CallConnecting();
         //todo
+        yield CallConnected();
       } catch (error) {
         yield CallError(error: error.toString());
       }
     }
+
     if (event is LeaveChannel) {
-      //todo
+      try {
+        yield CallDisconnecting();
+        //todo
+        yield CallDisconnected();
+      } catch (error) {
+        yield CallError(error: error.toString());
+      }
     }
+
     if (event is UserJoined) {
-      //todo
+      yield CallParticipantJoined();
     }
+
     if (event is UserOffline) {
-      //todo
+      yield CallParticipantLeft();
     }
   }
 }
