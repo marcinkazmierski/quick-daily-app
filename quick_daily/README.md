@@ -2,6 +2,9 @@
 
 Quick Daily mobile app!
 
+## REST API for this app:
+`https://github.com/marcinkazmierski/quick-daily-api`
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
