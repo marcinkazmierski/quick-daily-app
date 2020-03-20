@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:equatable/equatable.dart';
 import 'package:bloc/bloc.dart';
 import 'package:quick_daily/common/exceptions/validator_exception.dart';
@@ -90,12 +91,23 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   @override
   Stream<CallState> mapEventToState(CallEvent event) async* {
     if (event is InitialCall) {
+      yield CallConnecting();
+
       try {
         if (event.team.externalAppId.isEmpty) {
           throw new ValidatorException("Team externalAppId is empty!");
         }
 
-        yield CallConnecting();
+        await AgoraRtcEngine.create(event.team.externalAppId);
+        await AgoraRtcEngine.enableAudio();
+        await AgoraRtcEngine.disableVideo(); // without video
+
+
+        await AgoraRtcEngine.enableWebSdkInteroperability(true);
+        await AgoraRtcEngine.joinChannel(null, event.team.name, null, 0);
+        await AgoraRtcEngine.enableAudioVolumeIndication(200, 3, false);
+
+
         //todo
         yield CallConnected();
       } catch (error) {

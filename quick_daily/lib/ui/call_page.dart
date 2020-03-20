@@ -15,10 +15,13 @@ class CallPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    CallBloc callBloc = CallBloc();
+    callBloc.add(InitialCall(team: this.team));
+
     return Scaffold(
       body: BlocProvider(
         create: (context) {
-          return CallBloc();
+          return callBloc;
         },
         child: CallView(team: this.team),
       ),
@@ -40,8 +43,6 @@ class _CallPageState extends State<CallView> {
 
   bool muted = false;
 
-  CallBloc _callBloc;
-
   @override
   void dispose() {
     // clear users
@@ -54,28 +55,9 @@ class _CallPageState extends State<CallView> {
 
   @override
   void initState() {
-    _callBloc = new CallBloc();
-    _callBloc.add(InitialCall(team: this.widget.team));
     super.initState();
     // initialize agora sdk
-    initialize();
-  }
-
-  Future<void> initialize() async {
-    if (widget.team.externalAppId.isEmpty) {
-      Future.delayed(Duration.zero, () {
-        this.showInSnackBar("Agora Engine is not starting - APP_ID missing.");
-      });
-    }
-
-    await AgoraRtcEngine.create(widget.team.externalAppId);
-    await AgoraRtcEngine.enableAudio();
-    await AgoraRtcEngine.disableVideo(); // without video
-
     _addAgoraEventHandlers();
-    await AgoraRtcEngine.enableWebSdkInteroperability(true);
-    await AgoraRtcEngine.joinChannel(null, widget.team.name, null, 0);
-    await AgoraRtcEngine.enableAudioVolumeIndication(200, 3, false);
   }
 
   /// Add agora event handlers
@@ -267,8 +249,6 @@ class _CallPageState extends State<CallView> {
 
   @override
   Widget build(BuildContext context) {
-    // BlocProvider.of<CallBloc>(context).add(InitialCall(team: this.widget.team));
-
     return BlocListener<CallBloc, CallState>(
       listener: (context, state) {
         if (state is CallError) {
@@ -297,7 +277,7 @@ class _CallPageState extends State<CallView> {
             );
           }
 
-          return Scaffold(); //empty
+          return Scaffold(key: _scaffoldKey); //empty
         },
       ),
     );

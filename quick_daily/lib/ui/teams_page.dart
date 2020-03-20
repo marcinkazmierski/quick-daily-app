@@ -111,7 +111,7 @@ class _TeamsState extends State<TeamsList> {
                             PopupMenuItem<String>(
                               child: Row(
                                 children: <Widget>[
-                                  Text("ver: 0.3-dev",
+                                  Text("ver: 0.4-dev",
                                       style: TextStyle(
                                           fontStyle: FontStyle.italic,
                                           color: Colors.grey))
