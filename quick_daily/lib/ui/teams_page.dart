@@ -205,6 +205,8 @@ class _TeamsState extends State<TeamsList> {
     await _handleMic();
     // push video page with given channel name
 
+    // todo: bloc state!
+
     await Navigator.push(
       context,
       MaterialPageRoute(

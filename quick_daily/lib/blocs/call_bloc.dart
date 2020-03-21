@@ -181,7 +181,11 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     if (event is UserLeftChannel) {
       try {
         yield CallDisconnecting();
+        // clear users
         this.users.clear();
+        // destroy sdk
+        AgoraRtcEngine.leaveChannel();
+        AgoraRtcEngine.destroy();
         yield CallDisconnected();
       } catch (error) {
         yield CallError(error: error.toString());

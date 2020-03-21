@@ -47,16 +47,6 @@ class _CallPageState extends State<CallView> {
   bool muted = false;
 
   @override
-  void dispose() {
-    // clear users
-    users.clear();
-    // destroy sdk
-    AgoraRtcEngine.leaveChannel();
-    AgoraRtcEngine.destroy();
-    super.dispose();
-  }
-
-  @override
   void initState() {
     super.initState();
     // initialize agora sdk
