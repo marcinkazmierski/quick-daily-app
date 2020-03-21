@@ -90,6 +90,10 @@ class ParticipantOffline extends CallEvent {
 }
 
 class OnCallError extends CallEvent {
+  final String error;
+
+  const OnCallError({this.error});
+
   @override
   List<Object> get props => [];
 
@@ -154,6 +158,10 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     if (event is ParticipantOffline) {
       yield CallParticipantLeft();
     }
+
+    if (event is OnCallError) {
+      yield CallError(error: event.error);
+    }
   }
 
   /// Add agora event handlers
@@ -161,7 +169,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     AgoraRtcEngine.onError = (dynamic code) {
       final info = 'BLoC: onError: $code';
       print(info);
-      this.add(OnCallError()); // todo: logic
+      this.add(OnCallError(error: info));
     };
 
     AgoraRtcEngine.onJoinChannelSuccess = (
