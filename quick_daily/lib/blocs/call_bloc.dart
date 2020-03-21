@@ -57,12 +57,12 @@ class InitialCall extends CallEvent {
   String toString() => 'InitialCall {team: ' + this.team.name + '}';
 }
 
-class LeaveChannel extends CallEvent {
+class UserLeftChannel extends CallEvent {
   @override
   List<Object> get props => [];
 
   @override
-  String toString() => 'LeaveChannel {}';
+  String toString() => 'UserLeftChannel {}';
 }
 
 class UserJoined extends CallEvent {
@@ -73,18 +73,32 @@ class UserJoined extends CallEvent {
   String toString() => 'UserJoined {}';
 }
 
-class UserOffline extends CallEvent {
+class ParticipantJoined extends CallEvent {
   @override
   List<Object> get props => [];
 
   @override
-  String toString() => 'UserOffline {}';
+  String toString() => 'ParticipantJoined {}';
+}
+
+class ParticipantOffline extends CallEvent {
+  @override
+  List<Object> get props => [];
+
+  @override
+  String toString() => 'ParticipantOffline {}';
+}
+
+class OnCallError extends CallEvent {
+  @override
+  List<Object> get props => [];
+
+  @override
+  String toString() => 'OnCallError {}';
 }
 
 /// BLOC
 class CallBloc extends Bloc<CallEvent, CallState> {
-
-
   @override
   CallState get initialState => CallNotConnected();
 
@@ -102,12 +116,20 @@ class CallBloc extends Bloc<CallEvent, CallState> {
         await AgoraRtcEngine.enableAudio();
         await AgoraRtcEngine.disableVideo(); // without video
 
-
         await AgoraRtcEngine.enableWebSdkInteroperability(true);
         await AgoraRtcEngine.joinChannel(null, event.team.name, null, 0);
         await AgoraRtcEngine.enableAudioVolumeIndication(200, 3, false);
 
+        _addAgoraEventHandlers();
 
+        //todo
+      } catch (error) {
+        yield CallError(error: error.toString());
+      }
+    }
+
+    if (event is UserJoined) {
+      try {
         //todo
         yield CallConnected();
       } catch (error) {
@@ -115,7 +137,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       }
     }
 
-    if (event is LeaveChannel) {
+    if (event is UserLeftChannel) {
       try {
         yield CallDisconnecting();
         //todo
@@ -125,12 +147,61 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       }
     }
 
-    if (event is UserJoined) {
+    if (event is ParticipantJoined) {
       yield CallParticipantJoined();
     }
 
-    if (event is UserOffline) {
+    if (event is ParticipantOffline) {
       yield CallParticipantLeft();
     }
+  }
+
+  /// Add agora event handlers
+  void _addAgoraEventHandlers() {
+    AgoraRtcEngine.onError = (dynamic code) {
+      final info = 'BLoC: onError: $code';
+      print(info);
+      this.add(OnCallError()); // todo: logic
+    };
+
+    AgoraRtcEngine.onJoinChannelSuccess = (
+      String channel,
+      int uid,
+      int elapsed,
+    ) {
+      final info = 'BLoC: onJoinChannel: $channel, my uid: $uid';
+      print(info);
+      this.add(UserJoined());
+      // todo: logic
+    };
+
+    AgoraRtcEngine.onLeaveChannel = () {
+      final info = 'BLoC: onLeaveChannel';
+      print(info);
+      this.add(UserLeftChannel());
+      // todo: logic
+    };
+
+    AgoraRtcEngine.onUserJoined = (int uid, int elapsed) {
+      final info = 'BLoC: userJoined: ' + uid.toString();
+      print(info);
+      this.add(ParticipantJoined());
+      // todo: logic
+    };
+
+    AgoraRtcEngine.onUserOffline = (int uid, int reason) {
+      final info = 'BLoC: onUserOffline: ' + uid.toString();
+      print(info);
+      this.add(ParticipantOffline());
+      // todo: logic
+    };
+
+    AgoraRtcEngine.onAudioVolumeIndication =
+        (int totalVolume, List<AudioVolumeInfo> speakers) {
+      final info =
+          'BLoC: onAudioVolumeIndication: speakers: ' + speakers.toString();
+      print(info);
+      // todo: logic
+    };
   }
 }
