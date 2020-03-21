@@ -1,10 +1,12 @@
 import 'dart:async';
-
+import 'dart:collection';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:equatable/equatable.dart';
 import 'package:bloc/bloc.dart';
 import 'package:quick_daily/common/exceptions/validator_exception.dart';
 import 'package:quick_daily/models/team.dart';
+import 'package:quick_daily/models/user.dart';
+import 'package:quick_daily/repositories/api_repository.dart';
 
 ///STATES
 abstract class CallState extends Equatable {
@@ -18,15 +20,30 @@ class CallNotConnected extends CallState {}
 
 class CallConnecting extends CallState {}
 
-class CallConnected extends CallState {}
+class CallConnected extends CallState {
+  final Map users;
+
+  const CallConnected({this.users});
+
+  @override
+  List<Object> get props => [this.users];
+}
 
 class CallDisconnecting extends CallState {}
 
 class CallDisconnected extends CallState {}
 
-class CallParticipantJoined extends CallState {}
+class CallParticipantJoined extends CallConnected {
+  final Map users;
 
-class CallParticipantLeft extends CallState {}
+  CallParticipantJoined({this.users}) : super(users: users);
+}
+
+class CallParticipantLeft extends CallConnected {
+  final Map users;
+
+  CallParticipantLeft({this.users}) : super(users: users);
+}
 
 class CallError extends CallState {
   final String error;
@@ -66,27 +83,39 @@ class UserLeftChannel extends CallEvent {
 }
 
 class UserJoined extends CallEvent {
-  @override
-  List<Object> get props => [];
+  final String userId;
+
+  const UserJoined({this.userId});
 
   @override
-  String toString() => 'UserJoined {}';
+  List<Object> get props => [this.userId];
+
+  @override
+  String toString() => 'UserJoined {$userId}';
 }
 
 class ParticipantJoined extends CallEvent {
-  @override
-  List<Object> get props => [];
+  final String userId;
+
+  const ParticipantJoined({this.userId});
 
   @override
-  String toString() => 'ParticipantJoined {}';
+  List<Object> get props => [this.userId];
+
+  @override
+  String toString() => 'ParticipantJoined {$userId}';
 }
 
 class ParticipantOffline extends CallEvent {
-  @override
-  List<Object> get props => [];
+  final String userId;
+
+  const ParticipantOffline({this.userId});
 
   @override
-  String toString() => 'ParticipantOffline {}';
+  List<Object> get props => [this.userId];
+
+  @override
+  String toString() => 'ParticipantOffline {$userId}';
 }
 
 class OnCallError extends CallEvent {
@@ -95,7 +124,7 @@ class OnCallError extends CallEvent {
   const OnCallError({this.error});
 
   @override
-  List<Object> get props => [];
+  List<Object> get props => [this.error];
 
   @override
   String toString() => 'OnCallError {}';
@@ -103,6 +132,15 @@ class OnCallError extends CallEvent {
 
 /// BLOC
 class CallBloc extends Bloc<CallEvent, CallState> {
+  final ApiRepository apiRepository;
+
+  CallBloc({this.apiRepository}) : assert(apiRepository != null);
+
+  Map users = LinkedHashMap<String, User>();
+
+  Team team;
+  User currentUser;
+
   @override
   CallState get initialState => CallNotConnected();
 
@@ -115,7 +153,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
         if (event.team.externalAppId.isEmpty) {
           throw new ValidatorException("Team externalAppId is empty!");
         }
-
+        this.team = event.team;
         await AgoraRtcEngine.create(event.team.externalAppId);
         await AgoraRtcEngine.enableAudio();
         await AgoraRtcEngine.disableVideo(); // without video
@@ -125,8 +163,6 @@ class CallBloc extends Bloc<CallEvent, CallState> {
         await AgoraRtcEngine.enableAudioVolumeIndication(200, 3, false);
 
         _addAgoraEventHandlers();
-
-        //todo
       } catch (error) {
         yield CallError(error: error.toString());
       }
@@ -134,8 +170,9 @@ class CallBloc extends Bloc<CallEvent, CallState> {
 
     if (event is UserJoined) {
       try {
-        //todo
-        yield CallConnected();
+        await apiRepository.initCall(this.team, event.userId);
+        this.currentUser = await apiRepository.getUserByUid(event.userId);
+        yield CallConnected(users: this.users);
       } catch (error) {
         yield CallError(error: error.toString());
       }
@@ -144,7 +181,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     if (event is UserLeftChannel) {
       try {
         yield CallDisconnecting();
-        //todo
+        this.users.clear();
         yield CallDisconnected();
       } catch (error) {
         yield CallError(error: error.toString());
@@ -152,11 +189,18 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     }
 
     if (event is ParticipantJoined) {
-      yield CallParticipantJoined();
+      try {
+        final User user = await apiRepository.getUserByUid(event.userId);
+        this.users.putIfAbsent(event.userId, () => user);
+        yield CallParticipantJoined(users: this.users);
+      } catch (error) {
+        yield CallError(error: error.toString());
+      }
     }
 
     if (event is ParticipantOffline) {
-      yield CallParticipantLeft();
+      this.users.removeWhere((key, value) => key == event.userId);
+      yield CallParticipantLeft(users: this.users);
     }
 
     if (event is OnCallError) {
@@ -167,7 +211,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   /// Add agora event handlers
   void _addAgoraEventHandlers() {
     AgoraRtcEngine.onError = (dynamic code) {
-      final info = 'BLoC: onError: $code';
+      final info = 'AgoraRtcEngine: onError: $code';
       print(info);
       this.add(OnCallError(error: info));
     };
@@ -177,39 +221,44 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       int uid,
       int elapsed,
     ) {
-      final info = 'BLoC: onJoinChannel: $channel, my uid: $uid';
-      print(info);
-      this.add(UserJoined());
-      // todo: logic
+      this.add(UserJoined(userId: uid.toString()));
     };
 
     AgoraRtcEngine.onLeaveChannel = () {
-      final info = 'BLoC: onLeaveChannel';
-      print(info);
       this.add(UserLeftChannel());
-      // todo: logic
     };
 
     AgoraRtcEngine.onUserJoined = (int uid, int elapsed) {
-      final info = 'BLoC: userJoined: ' + uid.toString();
-      print(info);
-      this.add(ParticipantJoined());
-      // todo: logic
+      this.add(ParticipantJoined(userId: uid.toString()));
     };
 
     AgoraRtcEngine.onUserOffline = (int uid, int reason) {
-      final info = 'BLoC: onUserOffline: ' + uid.toString();
-      print(info);
-      this.add(ParticipantOffline());
-      // todo: logic
+      this.add(ParticipantOffline(userId: uid.toString()));
     };
 
     AgoraRtcEngine.onAudioVolumeIndication =
         (int totalVolume, List<AudioVolumeInfo> speakers) {
+      /// Total volume after audio mixing. The value ranges between 0 (lowest volume) and 255 (highest volume).
+
       final info =
           'BLoC: onAudioVolumeIndication: speakers: ' + speakers.toString();
-      print(info);
+      // print(info);
       // todo: logic
+      /** todo:
+          users.forEach((key, user) {
+          user.speakingVolume = 0;
+          });
+
+          for (var i = 0; i < speakers.length; i++) {
+          AudioVolumeInfo info = speakers[i];
+
+          if (users.containsKey(info.uid.toString())) {
+          User user = users[info.uid.toString()];
+          user.speakingVolume = info.volume;
+          users[info.uid.toString()] = user;
+          }
+          }
+       */
     };
   }
 }

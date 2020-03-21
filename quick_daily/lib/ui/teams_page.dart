@@ -25,13 +25,19 @@ class TeamsPage extends StatelessWidget {
             apiRepository: apiRepository,
           );
         },
-        child: TeamsList(),
+        child: TeamsList(apiRepository: this.apiRepository),
       ),
     );
   }
 }
 
 class TeamsList extends StatefulWidget {
+  final ApiRepository apiRepository;
+
+  const TeamsList({Key key, this.apiRepository })
+      : assert(apiRepository != null),
+        super(key: key);
+
   @override
   State<TeamsList> createState() => _TeamsState();
 }
@@ -203,6 +209,7 @@ class _TeamsState extends State<TeamsList> {
       context,
       MaterialPageRoute(
         builder: (context) => CallPage(
+          apiRepository: this.widget.apiRepository,
           team: team,
         ),
       ),

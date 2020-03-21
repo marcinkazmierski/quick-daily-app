@@ -10,12 +10,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CallPage extends StatelessWidget {
   final Team team;
+  final ApiRepository apiRepository;
 
-  const CallPage({Key key, this.team}) : super(key: key);
+  const CallPage({Key key, this.team, this.apiRepository})
+      : assert(apiRepository != null),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    CallBloc callBloc = CallBloc();
+    CallBloc callBloc = CallBloc(apiRepository: this.apiRepository);
     callBloc.add(InitialCall(team: this.team));
 
     return Scaffold(
@@ -57,7 +60,7 @@ class _CallPageState extends State<CallView> {
   void initState() {
     super.initState();
     // initialize agora sdk
-    _addAgoraEventHandlers();
+    // _addAgoraEventHandlers();
   }
 
   /// Add agora event handlers
@@ -263,6 +266,7 @@ class _CallPageState extends State<CallView> {
       child: BlocBuilder<CallBloc, CallState>(
         builder: (context, state) {
           if (state is CallConnected) {
+            this.users = state.users;
             return Scaffold(
               key: _scaffoldKey,
               // backgroundColor: Colors.black,

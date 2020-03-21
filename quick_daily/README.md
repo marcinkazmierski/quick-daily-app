@@ -21,6 +21,8 @@ samples, guidance on mobile development, and a full API reference.
 ## BLoC
 - https://bloclibrary.dev/
 
+## Agora error codes:
+- https://docs.agora.io/en/Video/API%20Reference/electron/index.html#error
 
 ## Dart
 - `..` is known as cascade notation
@@ -33,3 +35,5 @@ samples, guidance on mobile development, and a full API reference.
 
 ## TODO:
 - registration page
+- `Transition { currentState: CallConnecting, event: OnCallError {}, nextState: CallError { error: AgoraRtcEngine: onError: 17 } }`
+gdy przeładuje kod na widoku konwersacji to leci ten błąd. Tutaj bym musiał to obsłużyć
