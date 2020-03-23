@@ -49,104 +49,6 @@ class _CallPageState extends State<CallView> {
 
   bool muted = false;
 
-//  @override
-//  void initState() {
-//    super.initState();
-//    // initialize agora sdk
-//    // _addAgoraEventHandlers();
-//  }
-
-  /// Add agora event handlers
-  void _addAgoraEventHandlers() {
-    AgoraRtcEngine.onError = (dynamic code) {
-      final info = 'onError: $code';
-      this.showInSnackBar(info);
-    };
-
-    AgoraRtcEngine.onJoinChannelSuccess = (
-      String channel,
-      int uid,
-      int elapsed,
-    ) {
-      final info = 'onJoinChannel: $channel, my uid: $uid';
-      this.showInSnackBar(info);
-      setState(() {
-        ApiRepository().initCall(widget.team, uid.toString()).then((u) {
-          ///
-        }).catchError((catchError) {
-          return showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: Text("API error"),
-                content: Text(catchError.toString()),
-              );
-            },
-          );
-        });
-      });
-    };
-
-    AgoraRtcEngine.onLeaveChannel = () {
-      this.showInSnackBar('onLeaveChannel');
-      setState(() {
-        users.clear();
-      });
-    };
-
-    AgoraRtcEngine.onUserJoined = (int uid, int elapsed) {
-      setState(() {
-        ApiRepository().getUserByUid(uid.toString()).then((u) {
-          setState(() {
-            users.putIfAbsent(uid.toString(), () => u);
-          });
-
-          final info = 'userJoined: ' + u.name;
-          this.showInSnackBar(info);
-        }).catchError((catchError) {
-          return showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: Text("API error"),
-                content: Text(catchError.toString()),
-              );
-            },
-          );
-        });
-      });
-    };
-
-    AgoraRtcEngine.onUserOffline = (int uid, int reason) {
-      User user = users[uid.toString()];
-      final info = 'userOffline: ' + user.name;
-      this.showInSnackBar(info);
-      setState(() {
-        users.removeWhere((key, value) => key == uid.toString());
-      });
-    };
-
-    AgoraRtcEngine.onAudioVolumeIndication =
-        (int totalVolume, List<AudioVolumeInfo> speakers) {
-      /// Total volume after audio mixing. The value ranges between 0 (lowest volume) and 255 (highest volume).
-      setState(() {
-        users.forEach((key, user) {
-          user.speakingVolume = 0;
-        });
-
-        for (var i = 0; i < speakers.length; i++) {
-          AudioVolumeInfo info = speakers[i];
-
-          if (users.containsKey(info.uid.toString())) {
-            User user = users[info.uid.toString()];
-            user.speakingVolume = info.volume;
-            users[info.uid.toString()] = user;
-          }
-        }
-      });
-    };
-  }
-
   /// Video layout wrapper
   Widget _viewRows() {
     if (users.isEmpty) {
@@ -261,7 +163,6 @@ class _CallPageState extends State<CallView> {
             this.users = state.users;
             this.muted = state.muted;
             return Scaffold(
-              key: _scaffoldKey,
               // backgroundColor: Colors.black,
               body: Center(
                 child: Stack(
@@ -278,16 +179,9 @@ class _CallPageState extends State<CallView> {
             return TeamsPage(apiRepository: this.widget.apiRepository);
           }
 
-          return Scaffold(key: _scaffoldKey); //empty
+          return Scaffold(); //empty
         },
       ),
     );
-  }
-
-  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-
-  void showInSnackBar(String value) {
-    _scaffoldKey.currentState
-        .showSnackBar(new SnackBar(content: new Text(value)));
   }
 }
