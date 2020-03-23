@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:equatable/equatable.dart';
 import 'package:bloc/bloc.dart';
@@ -22,11 +23,16 @@ class CallConnecting extends CallState {}
 
 class CallConnected extends CallState {
   final Map users;
+  final Team team;
+  final bool muted;
 
-  const CallConnected({this.users});
+  const CallConnected({this.users, this.team, this.muted});
 
   @override
   List<Object> get props => [this.users];
+
+  @override
+  String toString() => 'CallConnected {team: ' + this.team.name + '}';
 }
 
 class CallDisconnecting extends CallState {}
@@ -35,14 +41,38 @@ class CallDisconnected extends CallState {}
 
 class CallParticipantJoined extends CallConnected {
   final Map users;
+  final Team team;
+  final bool muted;
 
-  CallParticipantJoined({this.users}) : super(users: users);
+  CallParticipantJoined({this.users, this.team, this.muted})
+      : super(users: users, team: team, muted: muted);
 }
 
 class CallParticipantLeft extends CallConnected {
   final Map users;
+  final Team team;
+  final bool muted;
 
-  CallParticipantLeft({this.users}) : super(users: users);
+  CallParticipantLeft({this.users, this.team, this.muted})
+      : super(users: users, team: team, muted: muted);
+}
+
+class CallMuteOnChanged extends CallConnected {
+  final Map users;
+  final Team team;
+  final bool muted;
+
+  CallMuteOnChanged({this.users, this.team, this.muted})
+      : super(users: users, team: team, muted: muted);
+}
+
+class CallMuteOffChanged extends CallConnected {
+  final Map users;
+  final Team team;
+  final bool muted;
+
+  CallMuteOffChanged({this.users, this.team, this.muted})
+      : super(users: users, team: team, muted: muted);
 }
 
 class CallError extends CallState {
@@ -118,6 +148,14 @@ class ParticipantOffline extends CallEvent {
   String toString() => 'ParticipantOffline {$userId}';
 }
 
+class ToggleMute extends CallEvent {
+  @override
+  List<Object> get props => [];
+
+  @override
+  String toString() => 'ToggleMute {}';
+}
+
 class OnCallError extends CallEvent {
   final String error;
 
@@ -140,6 +178,8 @@ class CallBloc extends Bloc<CallEvent, CallState> {
 
   Team team;
   User currentUser;
+
+  bool muted = false;
 
   @override
   CallState get initialState => CallNotConnected();
@@ -172,7 +212,8 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       try {
         await apiRepository.initCall(this.team, event.userId);
         this.currentUser = await apiRepository.getUserByUid(event.userId);
-        yield CallConnected(users: this.users);
+        yield CallConnected(
+            users: this.users, team: this.team, muted: this.muted);
       } catch (error) {
         yield CallError(error: error.toString());
       }
@@ -196,7 +237,8 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       try {
         final User user = await apiRepository.getUserByUid(event.userId);
         this.users.putIfAbsent(event.userId, () => user);
-        yield CallParticipantJoined(users: this.users);
+        yield CallParticipantJoined(
+            users: this.users, team: this.team, muted: this.muted);
       } catch (error) {
         yield CallError(error: error.toString());
       }
@@ -204,7 +246,20 @@ class CallBloc extends Bloc<CallEvent, CallState> {
 
     if (event is ParticipantOffline) {
       this.users.removeWhere((key, value) => key == event.userId);
-      yield CallParticipantLeft(users: this.users);
+      yield CallParticipantLeft(
+          users: this.users, team: this.team, muted: this.muted);
+    }
+
+    if (event is ToggleMute) {
+      this.muted = !this.muted;
+      AgoraRtcEngine.muteLocalAudioStream(muted);
+      if (this.muted) {
+        yield CallMuteOnChanged(
+            users: this.users, team: this.team, muted: this.muted);
+      } else {
+        yield CallMuteOffChanged(
+            users: this.users, team: this.team, muted: this.muted);
+      }
     }
 
     if (event is OnCallError) {
@@ -225,6 +280,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       int uid,
       int elapsed,
     ) {
+      //todo: get team by channel name!
       this.add(UserJoined(userId: uid.toString()));
     };
 

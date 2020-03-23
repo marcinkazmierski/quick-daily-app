@@ -7,6 +7,7 @@ import 'package:quick_daily/models/team.dart';
 import 'package:quick_daily/models/user.dart';
 import 'package:quick_daily/repositories/api_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quick_daily/ui/teams_page.dart';
 
 class CallPage extends StatelessWidget {
   final Team team;
@@ -19,14 +20,13 @@ class CallPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     CallBloc callBloc = CallBloc(apiRepository: this.apiRepository);
-    callBloc.add(InitialCall(team: this.team));
 
     return Scaffold(
       body: BlocProvider(
         create: (context) {
           return callBloc;
         },
-        child: CallView(team: this.team),
+        child: CallView(team: this.team, apiRepository: this.apiRepository),
       ),
     );
   }
@@ -34,8 +34,11 @@ class CallPage extends StatelessWidget {
 
 class CallView extends StatefulWidget {
   final Team team;
+  final ApiRepository apiRepository;
 
-  const CallView({Key key, this.team}) : super(key: key);
+  const CallView({Key key, this.team, this.apiRepository})
+      : assert(apiRepository != null),
+        super(key: key);
 
   @override
   _CallPageState createState() => _CallPageState();
@@ -46,12 +49,12 @@ class _CallPageState extends State<CallView> {
 
   bool muted = false;
 
-  @override
-  void initState() {
-    super.initState();
-    // initialize agora sdk
-    // _addAgoraEventHandlers();
-  }
+//  @override
+//  void initState() {
+//    super.initState();
+//    // initialize agora sdk
+//    // _addAgoraEventHandlers();
+//  }
 
   /// Add agora event handlers
   void _addAgoraEventHandlers() {
@@ -230,18 +233,17 @@ class _CallPageState extends State<CallView> {
   }
 
   void _onCallEnd(BuildContext context) {
-    Navigator.pop(context);
+    BlocProvider.of<CallBloc>(context).add(UserLeftChannel());
   }
 
   void _onToggleMute() {
-    setState(() {
-      muted = !muted;
-    });
-    AgoraRtcEngine.muteLocalAudioStream(muted);
+    BlocProvider.of<CallBloc>(context).add(ToggleMute());
   }
 
   @override
   Widget build(BuildContext context) {
+    BlocProvider.of<CallBloc>(context).add(InitialCall(team: this.widget.team));
+
     return BlocListener<CallBloc, CallState>(
       listener: (context, state) {
         if (state is CallError) {
@@ -257,6 +259,7 @@ class _CallPageState extends State<CallView> {
         builder: (context, state) {
           if (state is CallConnected) {
             this.users = state.users;
+            this.muted = state.muted;
             return Scaffold(
               key: _scaffoldKey,
               // backgroundColor: Colors.black,
@@ -269,6 +272,10 @@ class _CallPageState extends State<CallView> {
                 ),
               ),
             );
+          }
+
+          if (state is CallDisconnected) {
+            return TeamsPage(apiRepository: this.widget.apiRepository);
           }
 
           return Scaffold(key: _scaffoldKey); //empty

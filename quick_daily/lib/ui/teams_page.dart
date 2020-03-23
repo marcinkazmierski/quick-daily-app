@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_daily/blocs/authentication_bloc.dart';
+import 'package:quick_daily/blocs/call_bloc.dart';
 import 'package:quick_daily/blocs/teams_bloc.dart';
 import 'package:quick_daily/models/team.dart';
 import 'package:quick_daily/models/user.dart';
@@ -34,7 +35,7 @@ class TeamsPage extends StatelessWidget {
 class TeamsList extends StatefulWidget {
   final ApiRepository apiRepository;
 
-  const TeamsList({Key key, this.apiRepository })
+  const TeamsList({Key key, this.apiRepository})
       : assert(apiRepository != null),
         super(key: key);
 
@@ -162,6 +163,13 @@ class _TeamsState extends State<TeamsList> {
             );
           }
 
+          if (state is TeamCallInitializing) {
+            return CallPage(
+              apiRepository: this.widget.apiRepository,
+              team: state.team,
+            );
+          }
+
           return Scaffold(
             body: _logoutContainer(context),
           );
@@ -193,29 +201,17 @@ class _TeamsState extends State<TeamsList> {
       subtitle: Text(team.description),
       trailing: Icon(Icons.keyboard_arrow_right),
       onTap: () {
-        onJoin(team);
+        onJoin(context, team);
       },
     );
   }
 
-  Future<void> onJoin(Team team) async {
-    // update input validation
-
+  // todo: cleanup,
+  // @deprecated
+  Future<void> onJoin(BuildContext context, Team team) async {
     // await for camera and mic permissions before pushing video page
     await _handleMic();
-    // push video page with given channel name
-
-    // todo: bloc state!
-
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CallPage(
-          apiRepository: this.widget.apiRepository,
-          team: team,
-        ),
-      ),
-    );
+    BlocProvider.of<TeamsBloc>(context).add(JoinToTeamCall(team: team));
   }
 
   Future<void> _handleMic() async {

@@ -40,6 +40,18 @@ class TeamsError extends TeamsState {
   String toString() => 'TeamsError { error: $error }';
 }
 
+class TeamCallInitializing extends TeamsState {
+  final Team team;
+
+  const TeamCallInitializing({this.team});
+
+  @override
+  List<Object> get props => [this.team];
+
+  @override
+  String toString() => 'InitialCall {team: ' + this.team.name + '}';
+}
+
 /// EVENTS
 abstract class TeamsEvent extends Equatable {
   const TeamsEvent();
@@ -53,6 +65,18 @@ class FetchTeams extends TeamsEvent {
 
   @override
   String toString() => 'FetchTeams {}';
+}
+
+class JoinToTeamCall extends TeamsEvent {
+  final Team team;
+
+  const JoinToTeamCall({this.team});
+
+  @override
+  List<Object> get props => [this.team];
+
+  @override
+  String toString() => 'InitialCall {team: ' + this.team.name + '}';
 }
 
 /// BLOC
@@ -75,6 +99,10 @@ class TeamsBloc extends Bloc<TeamsEvent, TeamsState> {
       } catch (error) {
         yield TeamsError(error: error.toString());
       }
+    }
+
+    if (event is JoinToTeamCall) {
+      yield TeamCallInitializing(team: event.team);
     }
   }
 }
