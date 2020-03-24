@@ -1,6 +1,4 @@
-import 'dart:async';
 import 'dart:collection';
-import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:quick_daily/blocs/call_bloc.dart';
 import 'package:quick_daily/models/team.dart';
@@ -57,6 +55,7 @@ class _CallPageState extends State<CallView> {
         child: Center(
           child: Text(
             "Jeszcze nikt nie dołączył do tej konwersacji... 😢",
+            // todo: translation
             textAlign: TextAlign.center,
           ),
         ),
@@ -98,7 +97,7 @@ class _CallPageState extends State<CallView> {
   }
 
   /// Toolbar layout
-  Widget _toolbar() {
+  Widget _toolbar(BuildContext context) {
     return Container(
       alignment: Alignment.bottomCenter,
       padding: const EdgeInsets.symmetric(vertical: 48),
@@ -106,7 +105,9 @@ class _CallPageState extends State<CallView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           RawMaterialButton(
-            onPressed: _onToggleMute,
+            onPressed: () {
+              BlocProvider.of<CallBloc>(context).add(ToggleMute());
+            },
             child: Icon(
               muted ? Icons.mic : Icons.mic_off,
               color: muted ? Colors.white : Colors.blueAccent,
@@ -118,7 +119,9 @@ class _CallPageState extends State<CallView> {
             padding: const EdgeInsets.all(12.0),
           ),
           RawMaterialButton(
-            onPressed: () => _onCallEnd(context),
+            onPressed: () {
+              BlocProvider.of<CallBloc>(context).add(UserLeftChannel());
+            },
             child: Icon(
               Icons.call_end,
               color: Colors.white,
@@ -132,14 +135,6 @@ class _CallPageState extends State<CallView> {
         ],
       ),
     );
-  }
-
-  void _onCallEnd(BuildContext context) {
-    BlocProvider.of<CallBloc>(context).add(UserLeftChannel());
-  }
-
-  void _onToggleMute() {
-    BlocProvider.of<CallBloc>(context).add(ToggleMute());
   }
 
   @override
@@ -168,7 +163,7 @@ class _CallPageState extends State<CallView> {
                 child: Stack(
                   children: <Widget>[
                     _viewRows(),
-                    _toolbar(),
+                    _toolbar(context),
                   ],
                 ),
               ),

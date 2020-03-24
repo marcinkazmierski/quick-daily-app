@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_daily/blocs/authentication_bloc.dart';
-import 'package:quick_daily/blocs/call_bloc.dart';
 import 'package:quick_daily/blocs/teams_bloc.dart';
 import 'package:quick_daily/models/team.dart';
 import 'package:quick_daily/models/user.dart';

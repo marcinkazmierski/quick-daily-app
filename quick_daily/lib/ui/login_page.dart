@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_daily/common/fade_animation.dart';
 import 'package:quick_daily/repositories/api_repository.dart';
