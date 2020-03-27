@@ -37,3 +37,4 @@ samples, guidance on mobile development, and a full API reference.
 - registration page
 - `Transition { currentState: CallConnecting, event: OnCallError {}, nextState: CallError { error: AgoraRtcEngine: onError: 17 } }`
 gdy przeładuje kod na widoku konwersacji to leci ten błąd. Tutaj bym musiał to obsłużyć
+- back button override
