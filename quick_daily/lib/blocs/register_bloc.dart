@@ -12,6 +12,8 @@ abstract class RegisterState extends Equatable {
 
 class RegisterInitial extends RegisterState {}
 
+class RegisterLoading extends RegisterState {}
+
 class RegisterFailure extends RegisterState {
   final String error;
 
