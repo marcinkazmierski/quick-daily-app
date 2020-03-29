@@ -162,6 +162,7 @@ class _TeamsState extends State<TeamsList> {
           }
 
           if (state is TeamCallInitializing) {
+            //todo navigation?
             return CallPage(
               apiRepository: this.widget.apiRepository,
               team: state.team,

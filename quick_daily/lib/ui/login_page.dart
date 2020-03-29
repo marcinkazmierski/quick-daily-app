@@ -48,6 +48,19 @@ class _LoginFormState extends State<LoginForm> {
       );
     }
 
+    _onRegisterButtonPressed() {
+      Scaffold.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Feature is not implemented yet...'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      Navigator.pushNamed(context, "register");
+//      BlocProvider.of<RegisterBloc>(context).add(
+//        RegisterButtonPressed(),
+//      );
+    }
+
     return BlocListener<LoginBloc, LoginState>(
       listener: (context, state) {
         if (state is LoginFailure) {
@@ -171,15 +184,7 @@ class _LoginFormState extends State<LoginForm> {
                         FadeAnimation(
                             2,
                             RaisedButton(
-                              onPressed: () {
-                                Scaffold.of(context).showSnackBar(
-                                  SnackBar(
-                                    content:
-                                        Text('Feature is not implemented yet'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              },
+                              onPressed: _onRegisterButtonPressed,
                               child: Padding(
                                   padding: EdgeInsets.all(15.0),
                                   child: Text('REGISTER')),

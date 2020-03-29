@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_daily/ui/login_page.dart';
 import 'package:quick_daily/repositories/api_repository.dart';
 import 'package:quick_daily/blocs/authentication_bloc.dart';
+import 'package:quick_daily/ui/register_page.dart';
 import 'package:quick_daily/ui/splash_page.dart';
 import 'package:quick_daily/common/loading_indicator.dart';
 import 'package:quick_daily/ui/teams_page.dart';
@@ -52,20 +53,24 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
-        builder: (context, state) {
-          if (state is AuthenticationAuthenticated) {
-            return TeamsPage(apiRepository: apiRepository);
+        home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
+          builder: (context, state) {
+            if (state is AuthenticationAuthenticated) {
+              return TeamsPage(apiRepository: apiRepository);
+            }
+            if (state is AuthenticationUnauthenticated) {
+              return LoginPage(apiRepository: apiRepository);
+            }
+            if (state is AuthenticationLoading) {
+              return LoadingIndicator();
+            }
+            return SplashPage();
+          },
+        ),
+        routes: {
+          'register': (context) {
+            return RegisterPage();
           }
-          if (state is AuthenticationUnauthenticated) {
-            return LoginPage(apiRepository: apiRepository);
-          }
-          if (state is AuthenticationLoading) {
-            return LoadingIndicator();
-          }
-          return SplashPage();
-        },
-      ),
-    );
+        });
   }
 }

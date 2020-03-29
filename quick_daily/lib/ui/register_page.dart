@@ -2,15 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_daily/blocs/register_bloc.dart';
 import 'package:quick_daily/common/fade_animation.dart';
-import 'package:quick_daily/repositories/api_repository.dart';
 
 class RegisterPage extends StatelessWidget {
-  final ApiRepository apiRepository;
-
-  RegisterPage({Key key, this.apiRepository})
-      : assert(apiRepository != null),
-        super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,25 +140,6 @@ class _RegisterFormState extends State<RegisterForm> {
                         SizedBox(
                           height: 15.0,
                         ),
-                        FadeAnimation(
-                            2,
-                            FlatButton(
-                                onPressed: () {
-                                  Scaffold.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                          'Feature is not implemented yet'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                },
-                                child: Text(
-                                  'Forgot your Password?',
-                                  style: TextStyle(color: Colors.white),
-                                ))),
-                        SizedBox(
-                          height: 15.0,
-                        ),
                         Center(
                           child: state is RegisterLoading
                               ? CircularProgressIndicator()
@@ -175,7 +149,7 @@ class _RegisterFormState extends State<RegisterForm> {
                             2,
                             RaisedButton(
                               onPressed: state is! RegisterLoading
-                                  ? _onRegisterSubmit()
+                                  ? _onRegisterSubmit
                                   : null,
                               child: Padding(
                                   padding: EdgeInsets.all(15.0),
