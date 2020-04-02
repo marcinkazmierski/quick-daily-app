@@ -38,3 +38,9 @@ samples, guidance on mobile development, and a full API reference.
 - `Transition { currentState: CallConnecting, event: OnCallError {}, nextState: CallError { error: AgoraRtcEngine: onError: 17 } }`
 gdy przeładuje kod na widoku konwersacji to leci ten błąd. Tutaj bym musiał to obsłużyć
 - back button override
+
+### Integration and Unit testing in Flutter
+- https://blog.usejournal.com/integration-and-unit-testing-in-flutter-f08e4bd961d5
+
+### Compile time Dependency Injection in Flutter
+- https://blog.usejournal.com/compile-time-dependency-injection-in-flutter-95bb190b4a71
