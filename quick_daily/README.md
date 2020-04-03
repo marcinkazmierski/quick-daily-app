@@ -44,3 +44,7 @@ gdy przeładuje kod na widoku konwersacji to leci ten błąd. Tutaj bym musiał 
 
 ### Compile time Dependency Injection in Flutter
 - https://blog.usejournal.com/compile-time-dependency-injection-in-flutter-95bb190b4a71
+
+### firebase
+- crashlytics
+- push notifications - Cloud Messaging

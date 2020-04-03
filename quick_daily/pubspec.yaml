@@ -32,6 +32,10 @@ dependencies:
   equatable: ^1.0.0
   random_string: ^2.0.1
   shared_preferences: ^0.5.3+4
+  firebase_crashlytics: ^0.1.3+3
+    # Add the dependency for the Firebase Core Flutter SDK
+  firebase_core: ^0.4.0+9
+
 
 dev_dependencies:
   flutter_test:
