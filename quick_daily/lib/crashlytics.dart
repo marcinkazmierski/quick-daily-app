@@ -47,6 +47,7 @@ class _MyAppState extends State<MyApp> {
                   child: const Text('Key'),
                   onPressed: () {
                     Crashlytics.instance.setString('foo', 'bar');
+                    Crashlytics.instance.log("FOO bar log 2");
                   }),
               FlatButton(
                   child: const Text('Log'),

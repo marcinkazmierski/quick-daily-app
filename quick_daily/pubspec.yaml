@@ -35,6 +35,8 @@ dependencies:
   firebase_crashlytics: ^0.1.3+3
     # Add the dependency for the Firebase Core Flutter SDK
   firebase_core: ^0.4.0+9
+  firebase_analytics: ^5.0.2
+
 
 
 dev_dependencies:
