@@ -76,6 +76,27 @@ class ApiRepository {
     return teams;
   }
 
+  Future<List<User>> getUsersByTeam(Team team) async {
+    List<User> users = new List<User>();
+    String userToken = await _getUserToken();
+
+    final response = await http
+        .get(API_URL + 'teams/' + team.id.toString() + '/users', headers: {
+      HttpHeaders.contentTypeHeader: "application/json",
+      "X-AUTH-TOKEN": userToken,
+    });
+    Map decoded = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      List<dynamic> list = decoded['users'];
+      users = list.map((i) => User.fromJson(i)).toList();
+    } else {
+      throw Exception(decoded['error']['userMessage']);
+    }
+
+    return users;
+  }
+
   Future<User> getUserByUid(String uid) async {
     String userToken = await _getUserToken();
     // await Future.delayed(Duration(seconds: 1));
