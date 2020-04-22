@@ -211,6 +211,9 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       try {
         await apiRepository.initCall(this.team, event.userId);
         this.currentUser = await apiRepository.getUserByUid(event.userId);
+        this.users = await apiRepository.getUsersByTeam(this.team);
+        this.users[this.currentUser.id.toString()].state = "current";
+
         yield CallConnected(
             users: this.users, team: this.team, muted: this.muted);
       } catch (error) {
@@ -235,7 +238,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     if (event is ParticipantJoined) {
       try {
         final User user = await apiRepository.getUserByUid(event.userId);
-        this.users.putIfAbsent(event.userId, () => user);
+        this.users[user.id.toString()].state = "active";
         yield CallParticipantJoined(
             users: this.users, team: this.team, muted: this.muted);
       } catch (error) {
@@ -271,6 +274,9 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     AgoraRtcEngine.onError = (dynamic code) {
       final info = 'AgoraRtcEngine: onError: $code';
       print(info);
+      // destroy sdk
+      AgoraRtcEngine.leaveChannel();
+      AgoraRtcEngine.destroy();
       this.add(OnCallError(error: info));
     };
 

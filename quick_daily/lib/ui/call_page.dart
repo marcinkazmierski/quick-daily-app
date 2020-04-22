@@ -91,7 +91,9 @@ class _CallPageState extends State<CallView> {
         backgroundImage: NetworkImage(user.imageUrl),
       ),
       title: Text(user.name),
-      subtitle: Text("External ID: " + user.externalId),
+      subtitle: Text(user.state == "active"
+          ? "External ID: " + user.externalId
+          : user.state),
       trailing: Icon(Icons.mic, color: micColor),
     );
   }

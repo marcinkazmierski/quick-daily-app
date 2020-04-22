@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:quick_daily/common/exceptions/validator_exception.dart';
@@ -76,8 +77,9 @@ class ApiRepository {
     return teams;
   }
 
-  Future<List<User>> getUsersByTeam(Team team) async {
-    List<User> users = new List<User>();
+  Future<Map<String, User>> getUsersByTeam(Team team) async {
+    Map users = LinkedHashMap<String, User>();
+
     String userToken = await _getUserToken();
 
     final response = await http
@@ -89,7 +91,10 @@ class ApiRepository {
 
     if (response.statusCode == 200) {
       List<dynamic> list = decoded['users'];
-      users = list.map((i) => User.fromJson(i)).toList();
+      list.forEach((item) {
+        User u = User.fromJson(item);
+        users.putIfAbsent(u.id.toString(), () => u);
+      });
     } else {
       throw Exception(decoded['error']['userMessage']);
     }

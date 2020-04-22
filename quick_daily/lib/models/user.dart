@@ -5,6 +5,7 @@ class User {
   String description;
   String imageUrl;
   int speakingVolume = 0;
+  String state = 'inactive';
 
   User({this.id, this.externalId, this.name, this.description, this.imageUrl});
 
