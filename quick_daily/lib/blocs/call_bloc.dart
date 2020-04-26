@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:equatable/equatable.dart';
 import 'package:bloc/bloc.dart';
@@ -23,12 +24,12 @@ class CallConnecting extends CallState {}
 class CallConnected extends CallState {
   final Map users;
   final Team team;
-  final bool muted;
+  final User currentUser;
 
-  const CallConnected({this.users, this.team, this.muted});
+  const CallConnected({this.users, this.team, this.currentUser});
 
   @override
-  List<Object> get props => [this.users];
+  List<Object> get props => [this.users, this.team, this.currentUser];
 
   @override
   String toString() => 'CallConnected {team: ' + this.team.name + '}';
@@ -41,37 +42,47 @@ class CallDisconnected extends CallState {}
 class CallParticipantJoined extends CallConnected {
   final Map users;
   final Team team;
-  final bool muted;
+  final User currentUser;
 
-  CallParticipantJoined({this.users, this.team, this.muted})
-      : super(users: users, team: team, muted: muted);
+  CallParticipantJoined({this.users, this.team, this.currentUser})
+      : super(users: users, team: team, currentUser: currentUser);
 }
 
 class CallParticipantLeft extends CallConnected {
   final Map users;
   final Team team;
-  final bool muted;
+  final User currentUser;
 
-  CallParticipantLeft({this.users, this.team, this.muted})
-      : super(users: users, team: team, muted: muted);
+  CallParticipantLeft({this.users, this.team, this.currentUser})
+      : super(users: users, team: team, currentUser: currentUser);
 }
 
 class CallMuteOnChanged extends CallConnected {
   final Map users;
   final Team team;
-  final bool muted;
+  final User currentUser;
 
-  CallMuteOnChanged({this.users, this.team, this.muted})
-      : super(users: users, team: team, muted: muted);
+  CallMuteOnChanged({this.users, this.team, this.currentUser})
+      : super(users: users, team: team, currentUser: currentUser);
 }
 
 class CallMuteOffChanged extends CallConnected {
   final Map users;
   final Team team;
-  final bool muted;
+  final User currentUser;
 
-  CallMuteOffChanged({this.users, this.team, this.muted})
-      : super(users: users, team: team, muted: muted);
+  CallMuteOffChanged({this.users, this.team, this.currentUser})
+      : super(users: users, team: team, currentUser: currentUser);
+}
+
+class AudioVolumeChanged extends CallConnected {
+  final Map users;
+  final Team team;
+  final User currentUser;
+  final int version;
+
+  AudioVolumeChanged({this.users, this.team, this.currentUser, this.version})
+      : super(users: users, team: team, currentUser: currentUser);
 }
 
 class CallError extends CallState {
@@ -167,6 +178,18 @@ class OnCallError extends CallEvent {
   String toString() => 'OnCallError {}';
 }
 
+class AudioVolumeIndication extends CallEvent {
+  final List<AudioVolumeInfo> speakers;
+
+  const AudioVolumeIndication({this.speakers});
+
+  @override
+  List<Object> get props => [this.speakers];
+
+  @override
+  String toString() => 'AudioVolumeIndication {}';
+}
+
 /// BLOC
 class CallBloc extends Bloc<CallEvent, CallState> {
   final ApiRepository apiRepository;
@@ -178,7 +201,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   Team team;
   User currentUser;
 
-  bool muted = false;
+  int version = 0;
 
   @override
   CallState get initialState => CallNotConnected();
@@ -215,7 +238,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
         this.users[this.currentUser.id.toString()].state = "current";
 
         yield CallConnected(
-            users: this.users, team: this.team, muted: this.muted);
+            users: this.users, team: this.team, currentUser: this.currentUser);
       } catch (error) {
         yield CallError(error: error.toString());
       }
@@ -240,28 +263,63 @@ class CallBloc extends Bloc<CallEvent, CallState> {
         final User user = await apiRepository.getUserByUid(event.userId);
         this.users[user.id.toString()].state = "active";
         yield CallParticipantJoined(
-            users: this.users, team: this.team, muted: this.muted);
+            users: this.users, team: this.team, currentUser: this.currentUser);
       } catch (error) {
         yield CallError(error: error.toString());
       }
     }
 
     if (event is ParticipantOffline) {
-      this.users.removeWhere((key, value) => key == event.userId);
-      yield CallParticipantLeft(
-          users: this.users, team: this.team, muted: this.muted);
+      try {
+        final User user = await apiRepository.getUserByUid(event.userId);
+        // this.users.removeWhere((key, value) => key == user.id.toString());
+        this.users[user.id.toString()].state = "inactive";
+        yield CallParticipantLeft(
+            users: this.users, team: this.team, currentUser: this.currentUser);
+      } catch (error) {
+        yield CallError(error: error.toString());
+      }
     }
 
     if (event is ToggleMute) {
-      this.muted = !this.muted;
-      AgoraRtcEngine.muteLocalAudioStream(muted);
-      if (this.muted) {
+      this.currentUser.muted = !this.currentUser.muted;
+      AgoraRtcEngine.muteLocalAudioStream(this.currentUser.muted);
+      if (this.currentUser.muted) {
         yield CallMuteOnChanged(
-            users: this.users, team: this.team, muted: this.muted);
+            users: this.users, team: this.team, currentUser: this.currentUser);
       } else {
         yield CallMuteOffChanged(
-            users: this.users, team: this.team, muted: this.muted);
+            users: this.users, team: this.team, currentUser: this.currentUser);
       }
+    }
+
+    if (event is AudioVolumeIndication) {
+      //todo
+      this.users.forEach((key, user) {
+        user.speakingVolume = 0;
+      });
+
+      for (var i = 0; i < event.speakers.length; i++) {
+        AudioVolumeInfo info = event.speakers[i];
+        String externalUserId = info.uid.toString();
+
+        this.users.forEach((key, user) {
+          if (externalUserId == user.externalId) {
+            user.speakingVolume = info.volume;
+            print("userId: " +
+                info.uid.toString() +
+                ", volume: " +
+                info.volume.toString());
+          }
+        });
+      }
+
+      // todo: do only when changed something!
+      yield AudioVolumeChanged(
+          users: this.users,
+          team: this.team,
+          currentUser: this.currentUser,
+          version: this.version++);
     }
 
     if (event is OnCallError) {
@@ -303,27 +361,9 @@ class CallBloc extends Bloc<CallEvent, CallState> {
 
     AgoraRtcEngine.onAudioVolumeIndication =
         (int totalVolume, List<AudioVolumeInfo> speakers) {
+      //this.add(AudioVolumeIndication(speakers: speakers));
+      //todo
       /// Total volume after audio mixing. The value ranges between 0 (lowest volume) and 255 (highest volume).
-
-      final info =
-          'BLoC: onAudioVolumeIndication: speakers: ' + speakers.toString();
-      // print(info);
-      // todo: logic
-      /** todo:
-          users.forEach((key, user) {
-          user.speakingVolume = 0;
-          });
-
-          for (var i = 0; i < speakers.length; i++) {
-          AudioVolumeInfo info = speakers[i];
-
-          if (users.containsKey(info.uid.toString())) {
-          User user = users[info.uid.toString()];
-          user.speakingVolume = info.volume;
-          users[info.uid.toString()] = user;
-          }
-          }
-       */
     };
   }
 }

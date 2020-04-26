@@ -45,7 +45,7 @@ class CallView extends StatefulWidget {
 class _CallPageState extends State<CallView> {
   Map users = LinkedHashMap<String, User>();
 
-  bool muted = false;
+  User currentUser;
 
   /// Video layout wrapper
   Widget _viewRows() {
@@ -85,6 +85,8 @@ class _CallPageState extends State<CallView> {
     } else if (user.speakingVolume >= 100) {
       micColor = Colors.red;
     }
+    print("user.ext: " + user.externalId);
+    print("user.speakingVolume: " + user.speakingVolume.toString());
 
     return ListTile(
       leading: CircleAvatar(
@@ -111,13 +113,14 @@ class _CallPageState extends State<CallView> {
               BlocProvider.of<CallBloc>(context).add(ToggleMute());
             },
             child: Icon(
-              muted ? Icons.mic : Icons.mic_off,
-              color: muted ? Colors.white : Colors.blueAccent,
+              this.currentUser.muted ? Icons.mic : Icons.mic_off,
+              color: this.currentUser.muted ? Colors.white : Colors.blueAccent,
               size: 20.0,
             ),
             shape: CircleBorder(),
             elevation: 2.0,
-            fillColor: muted ? Colors.blueAccent : Colors.white,
+            fillColor:
+                this.currentUser.muted ? Colors.blueAccent : Colors.white,
             padding: const EdgeInsets.all(12.0),
           ),
           RawMaterialButton(
@@ -158,7 +161,7 @@ class _CallPageState extends State<CallView> {
         builder: (context, state) {
           if (state is CallConnected) {
             this.users = state.users;
-            this.muted = state.muted;
+            this.currentUser = state.currentUser;
             return Scaffold(
               // backgroundColor: Colors.black,
               body: Center(
