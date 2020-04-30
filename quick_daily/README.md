@@ -46,5 +46,5 @@ gdy przeładuje kod na widoku konwersacji to leci ten błąd. Tutaj bym musiał 
 - https://blog.usejournal.com/compile-time-dependency-injection-in-flutter-95bb190b4a71
 
 ### firebase
-- crashlytics
+- crashlytics: generate google-services.json in `android/app/google-services.json`
 - push notifications - Cloud Messaging
