@@ -58,6 +58,18 @@ class RegisterSubmit extends RegisterEvent {
       'RegisterSubmit { nick: $nick, email: $email, password: $password }';
 }
 
+class OnRegisterError extends RegisterEvent {
+  final String error;
+
+  const OnRegisterError({this.error});
+
+  @override
+  List<Object> get props => [this.error];
+
+  @override
+  String toString() => 'OnCallError {}';
+}
+
 /// BLOC
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   @override
@@ -66,5 +78,8 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   @override
   Stream<RegisterState> mapEventToState(RegisterEvent event) async* {
     // TODO
+    if (event is OnRegisterError) {
+      yield RegisterFailure(error: event.error);
+    }
   }
 }
