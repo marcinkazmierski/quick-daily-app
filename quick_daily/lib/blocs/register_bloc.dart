@@ -78,6 +78,14 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   @override
   Stream<RegisterState> mapEventToState(RegisterEvent event) async* {
     // TODO
+    if (event is RegisterSubmit) {
+      try {
+        //todo: do registration
+      } catch (error) {
+        yield RegisterFailure(error: error.toString());
+      }
+    }
+
     if (event is OnRegisterError) {
       yield RegisterFailure(error: event.error);
     }
