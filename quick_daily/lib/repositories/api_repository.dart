@@ -164,6 +164,30 @@ class ApiRepository {
     }
   }
 
+  // todo: use it!
+  Future<void> leftCall(Team team, String callId) async {
+    if (callId.isEmpty) {
+      throw new ValidatorException("callId is empty!");
+    }
+    String userToken = await _getUserToken();
+    Map data = {'callId': callId, 'teamId': team.id};
+    var body = json.encode(data);
+
+    final response = await http.post(API_URL + 'users/call/left',
+        headers: {
+          HttpHeaders.contentTypeHeader: "application/json",
+          "X-AUTH-TOKEN": userToken,
+        },
+        body: body);
+
+    if (response.statusCode == 204) {
+      return;
+    } else {
+      Map decoded = jsonDecode(response.body);
+      throw Exception(decoded['error']['userMessage']);
+    }
+  }
+
   Future<String> _getUserToken() async {
     String userToken = '';
     await Keystore().get(USER_AUTH_TOKEN).then((token) {

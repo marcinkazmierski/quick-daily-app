@@ -80,9 +80,9 @@ class _CallPageState extends State<CallView> {
     User user = users.values.toList()[index];
 
     Color micColor = Colors.grey;
-    if (user.speakingVolume > 0 && user.speakingVolume < 100) {
+    if (user.speakingVolume > 0 && user.speakingVolume < 200) {
       micColor = Colors.blue;
-    } else if (user.speakingVolume >= 100) {
+    } else if (user.speakingVolume >= 200) {
       micColor = Colors.red;
     }
     print("user.ext: " + user.externalId);

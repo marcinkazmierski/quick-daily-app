@@ -79,9 +79,9 @@ class AudioVolumeChanged extends CallConnected {
   final Map users;
   final Team team;
   final User currentUser;
-  final int version;
+  final int volume;
 
-  AudioVolumeChanged({this.users, this.team, this.currentUser, this.version})
+  AudioVolumeChanged({this.users, this.team, this.currentUser, this.volume})
       : super(users: users, team: team, currentUser: currentUser);
 }
 
@@ -201,7 +201,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   Team team;
   User currentUser;
 
-  int version = 0;
+  int volume = 0;
 
   @override
   CallState get initialState => CallNotConnected();
@@ -235,7 +235,8 @@ class CallBloc extends Bloc<CallEvent, CallState> {
         await apiRepository.initCall(this.team, event.userId);
         this.currentUser = await apiRepository.getUserByUid(event.userId);
         this.users = await apiRepository.getUsersByTeam(this.team);
-        this.users[this.currentUser.id.toString()].state = "current";
+        this.users[this.currentUser.id.toString()].state =
+            "current: " + this.currentUser.externalId;
 
         yield CallConnected(
             users: this.users, team: this.team, currentUser: this.currentUser);
@@ -294,7 +295,8 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     }
 
     if (event is AudioVolumeIndication) {
-      //todo
+      bool updated = false;
+      int volume = 0;
       this.users.forEach((key, user) {
         user.speakingVolume = 0;
       });
@@ -305,7 +307,9 @@ class CallBloc extends Bloc<CallEvent, CallState> {
 
         this.users.forEach((key, user) {
           if (externalUserId == user.externalId) {
+            updated = true;
             user.speakingVolume = info.volume;
+            volume += user.speakingVolume;
             print("userId: " +
                 info.uid.toString() +
                 ", volume: " +
@@ -314,14 +318,19 @@ class CallBloc extends Bloc<CallEvent, CallState> {
         });
       }
 
-      // todo: do only when changed something!
-      yield AudioVolumeChanged(
-          users: this.users,
-          team: this.team,
-          currentUser: this.currentUser,
-          version: this.version++);
-    }
+      if (updated || volume == 0 && this.volume > 0) {
+        print("UPDATED!!!!! " + volume.toString());
+        yield AudioVolumeChanged(
+            users: this.users,
+            team: this.team,
+            currentUser: this.currentUser,
+            volume: volume);
+        this.volume = volume;
+      }
 
+      yield CallConnected(
+          users: this.users, team: this.team, currentUser: this.currentUser);
+    }
     if (event is OnCallError) {
       yield CallError(error: event.error);
     }
@@ -361,9 +370,10 @@ class CallBloc extends Bloc<CallEvent, CallState> {
 
     AgoraRtcEngine.onAudioVolumeIndication =
         (int totalVolume, List<AudioVolumeInfo> speakers) {
-      //this.add(AudioVolumeIndication(speakers: speakers));
-      //todo
-      /// Total volume after audio mixing. The value ranges between 0 (lowest volume) and 255 (highest volume).
+      if (speakers.length > 0 || this.volume > 0) {
+        /// Total volume after audio mixing. The value ranges between 0 (lowest volume) and 255 (highest volume).
+        this.add(AudioVolumeIndication(speakers: speakers));
+      }
     };
   }
 }
