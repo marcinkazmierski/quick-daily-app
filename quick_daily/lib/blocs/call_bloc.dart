@@ -248,6 +248,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     if (event is UserLeftChannel) {
       try {
         yield CallDisconnecting();
+        await apiRepository.leftCall(this.team, this.currentUser.externalId);
         // clear users
         this.users.clear();
         // destroy sdk

@@ -104,7 +104,7 @@ class ApiRepository {
 
   Future<User> getUserByUid(String uid) async {
     String userToken = await _getUserToken();
-    // await Future.delayed(Duration(seconds: 1));
+
     int retry = 3;
     while (retry > 0) {
       print(">>> retry: " + retry.toString());
